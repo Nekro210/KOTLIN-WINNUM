@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Weather App</string>
+    <string name="logo">Введите пароль</string>
+    <string name="hint_user_field">Пароль</string>
+    <string name="main_btn">Войти</string>
+    <string name="no_user_input">Неправильный пароль</string>
+</resources>
