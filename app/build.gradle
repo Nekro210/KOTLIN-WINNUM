@@ -5,6 +5,9 @@ plugins {
 }
 
 android {
+    packagingOptions {
+        resources.excludes.add("META-INF/*")
+    }
     signingConfigs {
         debug {
             storeFile file('C:\\Users\\nz200\\AndroidStudioProjects\\Weather\\keykeykey.jks')
@@ -21,7 +24,7 @@ android {
         targetSdkVersion 33
         versionCode 1
         versionName "1.0"
-
+        multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -54,4 +57,9 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     implementation "org.jetbrains.anko:anko-common:0.9"
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.5'
+    implementation 'com.google.zxing:core:3.4.1'
+    implementation 'com.journeyapps:zxing-android-embedded:3.6.0'
+    implementation group: 'javax.xml.stream', name: 'stax-api', version: '1.0-2'
+
 }
