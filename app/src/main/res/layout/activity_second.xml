@@ -4,11 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorPrimary"
+    android:background="@color/textColor"
     tools:context=".SecondActivity">
 
     <TextView
-        android:text="@string/results"
         android:id="@+id/result_info2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -18,7 +17,7 @@
         android:layout_marginBottom="20sp"
         android:fontFamily="@font/montserrat_bold"
         android:textAlignment="center"
-        android:textColor="@color/textColorHint"
+        android:textColor="@color/colorPrimaryDark"
         android:textSize="15sp" />
 
 
