@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
@@ -13,7 +12,6 @@ import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.utils.ColorTemplate
-import org.jetbrains.anko.doAsync
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
@@ -157,7 +155,7 @@ class SecondActivity : AppCompatActivity() {
         catch (e: Exception) {
             text += "Произошла ошибка, не удалось получить данные("
             Log.d("ERRORTYPE", e.message.toString())
-            e.printStackTrace();
+            e.printStackTrace()
         }
     }
     override fun onCreate(savedInstanceState: Bundle?) {

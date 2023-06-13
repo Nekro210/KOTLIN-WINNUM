@@ -33,7 +33,7 @@ class QR_ACTIVITY : AppCompatActivity() {
             if (result.contents == null) {
                 Toast.makeText(this, "Отменено", Toast.LENGTH_LONG).show()
             } else {
-                var qrCodeValue = result.contents
+                val qrCodeValue = result.contents
                 Toast.makeText(this, "Станок №$qrCodeValue", Toast.LENGTH_LONG).show()
                 val intent = (Intent(this, SecondActivity::class.java))
                 intent.putExtra("qrCodeValue", qrCodeValue)
