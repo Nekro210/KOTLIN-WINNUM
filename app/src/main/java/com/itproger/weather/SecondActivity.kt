@@ -17,6 +17,7 @@ import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.utils.ColorTemplate
+import org.jetbrains.anko.doAsync
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
@@ -26,6 +27,7 @@ import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.util.concurrent.Executor
 import kotlin.math.abs
 
 
@@ -40,12 +42,13 @@ class SecondActivity : AppCompatActivity() {
     private val ip_port = "http://10.0.2.2:82"
     private val objectMapper = ObjectMapper()
     private var json:JsonNode= objectMapper.createObjectNode()
+    private val executor: Executor? = null
+
     //private val qrCodeValue = 1
 
     @SuppressLint("SetTextI18n")
     fun getCon(url: String){
-        try{
-            val thread2 = Thread() {
+            try{
                 val url2 = URL("$url&usr=$user&pwd=$password")
                 val con = url2.openConnection() as HttpURLConnection
                 //con.setRequestProperty("cookie","JSESSIONID=P7gU7XsgvzM95dWk3Ztptk2BUJ-lBagIHcHMvbFq.laptop-m9c07f23; _ga=GA1.1.441910024.1683486154; Studio-346eca46=2707507b-8e30-41e9-9eed-0596a626828e")
@@ -62,13 +65,11 @@ class SecondActivity : AppCompatActivity() {
                 val xml = response.toString()
                 json = objectMapper.readValue(xml, JsonNode::class.java)
                 json = json["item"]
-            }
-            thread2.start()
-            thread2.join()
+
         } catch (e: Exception) {
-            text += "\nПроизошла ошибка, не удалось получить данные(\n"
-            Log.d("ERRORTYPE", e.message.toString())
-        }
+                text += "\nПроизошла ошибка, не удалось получить данные(\n"
+                Log.d("ERRORTYPE", e.message.toString())
+            }
     }
 
     fun add_text(stroka:String,json:JsonNode){
@@ -250,13 +251,15 @@ class SecondActivity : AppCompatActivity() {
                             )
                             no_work_time[0] -= json[i]["hours"].toString().replace("\"", "")
                                 .toFloat()
+                            //add_text(no_work_time[0].toString(), json)
+
                             //text_work += URLDecoder.decode(("${json[i]["tagName"]}: ${json[i]["hours"]} часов (${json[i]["percent"]}"),"UTF-8")
                         }
                 }
                 i++
             }
             //text_work +=" %)\n"
-            no_work_time[0] += (abs(
+            no_work_time[0] += ((
                 dateFormat.parse(
                     currentDateTime.replace(
                         "%20",
@@ -264,6 +267,7 @@ class SecondActivity : AppCompatActivity() {
                     )
                 ).time - dateFormat.parse(shift_start.replace("%20", " ")).time
             )).toFloat() / (1000 * 60 * 60)
+            no_work_time[0] = abs(no_work_time[0])
             entries.add(PieEntry(no_work_time[0], "Время простоя"))
             add_text(text_work, json)
         }catch (e: Exception) {
@@ -289,7 +293,8 @@ class SecondActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     fun getData() {
         try {
-            val qrCodeValue = intent.getStringExtra("qrCodeValue").toString().toInt()
+
+            val qrCodeValue =intent.getStringExtra("qrCodeValue").toString().toInt()
             val currentDate = LocalDateTime.now(ZoneId.of("Europe/Moscow"))
             val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
             //val month = currentDate.minusDays(30).toString().replace("T","%20")
@@ -388,10 +393,11 @@ class SecondActivity : AppCompatActivity() {
         setContentView(R.layout.activity_second)
         result_info2 = findViewById(R.id.result_info2)
         result_info2?.text = "Загрузка..."
+        doAsync {
+            getData()
+            runOnUiThread() {
 
-        runOnUiThread() {
-                getData()
-            }
+
         //  thread.start()
         //thread.join()
 
@@ -414,7 +420,7 @@ class SecondActivity : AppCompatActivity() {
         pieChart?.setDrawCenterText(true)
         pieChart?.setUsePercentValues(true)
         val l: Legend? = pieChart?.legend
-        l?.verticalAlignment = Legend.LegendVerticalAlignment.CENTER
+        l?.verticalAlignment = Legend.LegendVerticalAlignment.TOP
         l?.horizontalAlignment = Legend.LegendHorizontalAlignment.LEFT
 
         l?.orientation = Legend.LegendOrientation.VERTICAL
@@ -426,5 +432,7 @@ class SecondActivity : AppCompatActivity() {
         pieChart?.description = null
         pieChart?.animateXY(1000, 1000)
         pieChart?.invalidate()
+            }
+        }
     }
 }
