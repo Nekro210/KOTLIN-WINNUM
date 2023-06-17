@@ -33,13 +33,12 @@ class ExampleUnitTest {
 
     //private val ip_port_cl = "http://127.0.0.1:83"
 
-
     fun getCon(url: URL, cookie: String): JsonNode {
-        var con = url.openConnection() as HttpURLConnection
+        val url2 = URL("$url&usr=wnadmin&pwd=wnadmin")
+        val con = url2.openConnection() as HttpURLConnection
+        //con.setRequestProperty("cookie","JSESSIONID=P7gU7XsgvzM95dWk3Ztptk2BUJ-lBagIHcHMvbFq.laptop-m9c07f23; _ga=GA1.1.441910024.1683486154; Studio-346eca46=2707507b-8e30-41e9-9eed-0596a626828e")
         con.requestMethod = "GET"
-        con.setRequestProperty("cookie", cookie)
         con.connect()
-        //val responseCode = con.responseCode
         val objectMapper = XmlMapper()
         val reader = BufferedReader(InputStreamReader(con.inputStream))
         var inputLine: String?
@@ -56,10 +55,11 @@ class ExampleUnitTest {
     @Test
     fun getData() {
        try {
-           val currentDate = LocalDateTime.now()
+           var currentDate = LocalDateTime.now()
+           //currentDate = currentDate.plusHours(3)
            val month = currentDate.minusDays(30).toString().replace("T","%20")
            val week = currentDate.minusDays(7).toString().replace("T","%20")
-           val currentDateTime =  currentDate.toString().substring(0,18).replace("T","%20")
+           val currentDateTime =  currentDate.toString().replace("T","%20").substring(0,25)
 
            println("Текущая дата: $currentDateTime")
            println("Дата, отстоящая от текущей на 7 дней: $month")
@@ -72,6 +72,52 @@ class ExampleUnitTest {
                     "Модель: ${json["Model"]}\n" +
                     "Создано: ${json["PersistInfo__createStamp"]}\n" +
                     "Информация о ТО: ${json["RevisionInfo__state"]}","UTF-8"))
+
+
+           url =URL("$ip_port_pl/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNFactory&men=getPersistable&oid=winnum.org.product.WNProduct:$qrCodeValue&mode=yes")
+           json = getCon(url,cookie)
+           val template = (URLDecoder.decode("${json["TemplateInfo__idA12"]}, ","UTF-8")).replace("\"","").replace(", ","")
+
+
+           url = URL("$ip_port_pl/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNProductHelper&men=getSignalsByProductTemplate&oid=winnum.org.modeling.WNProductTemplate:$template&mode=yes")
+           json = getCon(url,cookie)
+           println(URLDecoder.decode("${json}, ","UTF-8"))
+           var operator_code_signal = ""
+           var operation_number = ""
+           var operator_signal = ""
+           var i = 0
+           while (i < json.size()) {
+               //println(URLDecoder.decode("${json[i]["signalname"]}, ","UTF-8"))
+               if (URLDecoder.decode("${json[i]["signalName"]}, ","UTF-8").replace("\"","").replace(", ","") == "Код оператора")
+                   operator_code_signal = URLDecoder.decode("${json[i]["asciiPartNumber"]}, ","UTF-8").replace("\"","").replace(", ","")
+               if (URLDecoder.decode("${json[i]["signalName"]}, ","UTF-8").replace("\"","").replace(", ","") == "Номер операции")
+                   operation_number = URLDecoder.decode("${json[i]["asciiPartNumber"]}, ","UTF-8").replace("\"","").replace(", ","")
+               if (URLDecoder.decode("${json[i]["signalName"]}, ","UTF-8").replace("\"","").replace(", ","") == "Оператор (ФИО)")
+                   operator_signal = URLDecoder.decode("${json[i]["asciiPartNumber"]}, ","UTF-8").replace("\"","").replace(", ","")
+               i++
+           }
+           url = URL("$ip_port_pl/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNCalendarHelper&men=getCurrentWorkShiftStartDate&oid=winnum.org.product.WNProduct:$qrCodeValue&mode=yes")
+           json = getCon(url,cookie)
+           val shift_start = URLDecoder.decode(json["datetime"].toString(),"UTF-8").replace("\"","").replace(" ","%20")
+           url = URL("$ip_port_pl/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNCNCApplicationTagHelper&men=getLoadingCalculation&appid=winnum.org.app.WNApplicationInstance:1&pid=winnum.org.product.WNProduct:$qrCodeValue&from=$shift_start&till=$currentDateTime&rounding=2&adjust=true&mode=yes")
+           json = getCon(url,cookie)
+           println(URLDecoder.decode(json.toString(),"UTF-8"))
+
+           url = URL("""$ip_port_pl/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNApplicationHelper&men=getApplicationTag&oid=winnum.org.app.WNApplicationInstance:1&tag=NC_PROGRAM_NAME&mode=yes""")
+           json = getCon(url,cookie)
+           println(URLDecoder.decode(json.toString(),"UTF-8"))
+
+           val folder_id = json["FolderInfo__idA6"].toString().replace("\"","").toInt()-1
+           url =URL("$ip_port_pl/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNFactory&men=getPersistable&oid=winnum.org.folder.WNFolder:$folder_id&mode=yes")
+           json = getCon(url,cookie)
+           print(URLDecoder.decode("${json["folderName"]}, ","UTF-8").replace("\"",""))
+           url =URL("$ip_port_pl/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNFactory&men=getPersistable&oid=winnum.org.product.WNProduct:$qrCodeValue&mode=yes")
+           json = getCon(url,cookie)
+           print(URLDecoder.decode("${json["FolderInfo__folderName"]}\n${json["TemplateInfo__partNumber"]}, ${json["SerialNumber"]}\n${json["name"]}\n","UTF-8").replace("\"",""))
+           //TemplateInfo__partNumber FolderInfo__folderName SerialNumber name FolderInfo__idA6-1 folderName
+           url =URL("$ip_port_pl/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNFactory&men=getPersistable&oid=winnum.org.folder.WNFolder:3&mode=yes")
+           json = getCon(url,cookie)
+           println(URLDecoder.decode("$json","UTF-8"))
            url = URL("$ip_port_pl/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=${uuid[qrCodeValue-1]}&signal=A12&stype=bycount&count=1&mode=yes")
            //url = URL("""$ip_port_pl/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNApplicationTagHelper&men=getLastTagCalculationValue&appid=winnum.org.app.WNApplicationInstance:1&pid=winnum.org.product.WNProduct:$qrCodeValue&tid=winnum.org.tag.WNTag:3&mode=yes""")
            json = getCon(url,cookie)
@@ -81,6 +127,8 @@ class ExampleUnitTest {
            else if (json["value"].toString()=="\"1\""){
                println(URLDecoder.decode("${json["event_time"]} станок был в состоянии аварийной остановки","UTF-8"))
            }
+
+
            // заменить на сигнал?
            url = URL("$ip_port_pl/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=${uuid[qrCodeValue-1]}&signal=A51&stype=bycount&count=1&mode=yes")
            json = getCon(url,cookie)
@@ -96,8 +144,13 @@ class ExampleUnitTest {
            url = URL("$ip_port_pl/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNCalendarHelper&men=getCurrentWorkShift&oid=winnum.org.product.WNProduct:$qrCodeValue&mode=yes")
            json = getCon(url,cookie)
            //println(URLDecoder.decode(json.toString(),"UTF-8"))
-           val shift_start = URLDecoder.decode(json[0]["PersistInfo__createStamp"].toString(),"UTF-8").replace("\"","").replace(" ","%20")
+           //val shift_start = URLDecoder.decode(json[0]["PersistInfo__createStamp"].toString(),"UTF-8").replace("\"","").replace(" ","%20")
            val shift_id = URLDecoder.decode(json[0]["id"].toString(),"UTF-8").replace("\"","")
+
+           url = URL("$ip_port_pl/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNCalendarHelper&men=getCurrentWorkShiftStartDate&oid=winnum.org.product.WNProduct:$qrCodeValue&mode=yes")
+           json = getCon(url,cookie)
+           //println(URLDecoder.decode(json.toString(),"UTF-8"))
+           //val shift_start = URLDecoder.decode(json[0]["datetime"].toString(),"UTF-8").replace("\"","").replace(" ","%20")
            //var shift_id = "winnum.org.time.WNWorkShift:1"
            //url = URL("$ip_port_pl/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNCalendarHelper&men=getWorkShifts&oid=winnum.org.product.WNProduct:$qrCodeValue&mode=yes")
            //json = getCon(url,cookie)
@@ -106,11 +159,11 @@ class ExampleUnitTest {
            //json = getCon(url, cookie)
            //var work_min = json["duration_seconds"].toString().replace("\"","").toInt()/60
            //println(URLDecoder.decode("Время текущей смены: $work_min минут","UTF-8"))
-           url = URL("$ip_port_pl/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNCNCApplicationTagHelper&men=getLoadingCalculation&appid=winnum.org.app.WNApplicationInstance:1&pid=winnum.org.product.WNProduct:$qrCodeValue&from=2023-06-09%2020:00:00&till=${currentDateTime}&timeout=60000&rounding=2&adjust=true&mode=yes")
+           url = URL("$ip_port_pl/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNCNCApplicationTagHelper&men=getLoadingCalculation&appid=winnum.org.app.WNApplicationInstance:1&pid=winnum.org.product.WNProduct:$qrCodeValue&from=$shift_start&till=${currentDateTime}&timeout=60000&rounding=2&adjust=true&mode=yes")
            // Сделать за неделю месяц
            json = getCon(url, cookie)
            println(URLDecoder.decode(json.toString(),"UTF-8"))
-           var i =0
+           i =0
            // СПРОСИТЬ КАК ПОЛУЧИТЬ ИНФОРМАЦИЮ О НАЧАЛЕ СМЕНЫ
            var text_work = "Показатели по текущей смене: ${shift_id}\n"
            val no_work_time = arrayOf(0.00F,0.00F)
@@ -135,11 +188,11 @@ class ExampleUnitTest {
            // Сделать симуляцию деталей типа
            //json = getCon(url,cookie)
            //println(URLDecoder.decode(json.toString(),"UTF-8"))
-           //url = URL("""$ip_port_pl/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNApplicationHelper&men=getApplicationTag&oid=winnum.org.app.WNApplicationInstance:1&tag=NC_PROGRAM_NAME&mode=yes""")
+           url = URL("""$ip_port_pl/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNApplicationHelper&men=getApplicationTag&oid=winnum.org.app.WNApplicationInstance:1&tag=NC_PROGRAM_NAME&mode=yes""")
           // url = URL("""$ip_port_pl/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNApplicationTagHelper&men=getLastTagCalculationValue&appid=winnum.org.app.WNApplicationInstance:1&pid=winnum.org.product.WNProduct:$qrCodeValue&tid=winnum.org.tag.WNTag:19&mode=yes""")
            //url = URL("$ip_port_pl/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNApplicationHelper&men=getTag&oid=winnum.org.app.WNApplicationInstance:1&mode=yes")
-           //json = getCon(url,cookie)
-           //println(URLDecoder.decode(json.toString(),"UTF-8"))
+           json = getCon(url,cookie)
+           println(URLDecoder.decode(json.toString(),"UTF-8"))
 //           url = URL("$ip_port_pl/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=${uuid[qrCodeValue-1]}&signal=A13&stype=bycount&count=1&mode=yes")
 //           json = getCon(url,cookie)
 //           //println(json["value"].toString())
@@ -219,6 +272,7 @@ class ExampleUnitTest {
        } catch (e: Exception) {
             println(e.message)
         }
+
     }
 
 
