@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorPrimary"
+    android:background="@color/textColor"
     tools:context=".MainActivity">
 
     <TextView
@@ -15,7 +15,7 @@
         android:text="@string/logo"
         android:layout_marginTop="50sp"
         android:textAlignment="center"
-        android:textColor="@color/textColor"
+        android:textColor="@color/colorPrimaryDark"
         android:textSize="30sp" />
 
     <EditText

@@ -27,7 +27,6 @@ import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.util.concurrent.Executor
 import kotlin.math.abs
 
 
@@ -42,13 +41,13 @@ class SecondActivity : AppCompatActivity() {
     private val ip_port = "http://10.0.2.2:82"
     private val objectMapper = ObjectMapper()
     private var json:JsonNode= objectMapper.createObjectNode()
-    private val executor: Executor? = null
 
     //private val qrCodeValue = 1
 
     @SuppressLint("SetTextI18n")
     fun getCon(url: String){
             try{
+
                 val url2 = URL("$url&usr=$user&pwd=$password")
                 val con = url2.openConnection() as HttpURLConnection
                 //con.setRequestProperty("cookie","JSESSIONID=P7gU7XsgvzM95dWk3Ztptk2BUJ-lBagIHcHMvbFq.laptop-m9c07f23; _ga=GA1.1.441910024.1683486154; Studio-346eca46=2707507b-8e30-41e9-9eed-0596a626828e")
@@ -83,13 +82,13 @@ class SecondActivity : AppCompatActivity() {
             var url =
                 ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNFactory&men=getPersistable&oid=winnum.org.folder.WNFolder:$folder_id&mode=yes")
             getCon(url)
-            add_text(URLDecoder.decode("${json["folderName"]}, ", "UTF-8"), json)
+            add_text("                                   "+URLDecoder.decode("${json["folderName"]}, ", "UTF-8"), json)
             url =
                 ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNFactory&men=getPersistable&oid=winnum.org.product.WNProduct:$qrCodeValue&mode=yes")
             getCon(url)
             add_text(
                 URLDecoder.decode(
-                    "${json["FolderInfo__folderName"]}\n${json["TemplateInfo__partNumber"]}, ${json["SerialNumber"]}\n${json["name"]}\n",
+                    "${json["FolderInfo__folderName"]}\n\n${json["TemplateInfo__partNumber"]}, ${json["SerialNumber"]}\n${json["name"]}\n",
                     "UTF-8"
                 ), json
             )
@@ -134,7 +133,7 @@ class SecondActivity : AppCompatActivity() {
             url =
                 ("""$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNApplicationTagHelper&men=getLastTagCalculationValue&appid=winnum.org.app.WNApplicationInstance:1&pid=winnum.org.product.WNProduct:$qrCodeValue&tid=$program_name_tag&mode=yes""")
             getCon(url)
-            add_text(URLDecoder.decode("УП\n\n${json["value"]}, ", "UTF-8"), json)
+            add_text(URLDecoder.decode("                                           "+"УП\n\n${json["value"]}, ", "UTF-8"), json)
         } catch (e: Exception) {
             text += "\nПроизошла ошибка, не удалось получить данные(\n"
             Log.d("ERRORTYPE", e.message.toString())
@@ -227,7 +226,7 @@ class SecondActivity : AppCompatActivity() {
             var i = 0
             //val work_time = arrayOf(0.00F)
             val no_work_time = arrayOf(0.00F)
-            val text_work = "Показатели cмены\n\n"
+            val text_work = "                               "+"Показатели cмены\n\n"
             while (i < json.size()) {
                 if (URLDecoder.decode(json[i]["shiftOid"].toString(), "UTF-8") == "\"$shift_id\"") {
                     if (URLDecoder.decode("${json[i]["percent"]}", "UTF-8").toString()
@@ -282,7 +281,7 @@ class SecondActivity : AppCompatActivity() {
         var i = 1
         while (i < json.size()) {
             if (json[i-1]["value"].toString() != json[i]["value"].toString()){
-                add_text(URLDecoder.decode("Начало работы: ${json[i-1]["event_time"]}","UTF-8"), json)
+                add_text(URLDecoder.decode("Начало работы: ${json[i-1]["event_time"]}","UTF-8").substring(0,35), json)
                 break
             }
             i++
