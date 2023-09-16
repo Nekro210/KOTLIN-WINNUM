@@ -27,10 +27,10 @@
         android:layout_marginTop="70sp"
         android:backgroundTint="@color/colorAccent"
         android:ems="10"
+        android:textColor="@color/colorPrimaryDark"
         android:fontFamily="@font/montserrat_bold"
         android:hint="@string/hint_user_field"
         android:inputType="textPersonName"
-        android:textColor="@color/textColor"
         android:textColorHint="@color/textColorHint" />
 
     <Button

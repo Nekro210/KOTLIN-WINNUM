@@ -37,10 +37,12 @@ class SecondActivity : AppCompatActivity() {
     private val entries: ArrayList<PieEntry> = ArrayList()
     private val password = "wnadmin"
     private val user = "wnadmin"
-    private val uuid= arrayOf("91528AAD-2D7C-43BE-B765-192E89BF3C77")
-    private val ip_port = "http://10.0.2.2:82"
+    //private val uuid= Array<String>
+    private val ip_port = "http://10.0.0.2:82"
+    //"http://192.168.0.101:80"
     private val objectMapper = ObjectMapper()
     private var json:JsonNode= objectMapper.createObjectNode()
+    private var pi = -1
 
     //private val qrCodeValue = 1
 
@@ -76,7 +78,7 @@ class SecondActivity : AppCompatActivity() {
             text += stroka.replace("\"","")
     }
 
-    fun get_product_info(qrCodeValue:Int) {
+    fun get_product_info(qrCodeValue:String) {
         try {
             val folder_id = json["FolderInfo__idA6"].toString().replace("\"", "").toInt() - 1
             var url =
@@ -84,7 +86,7 @@ class SecondActivity : AppCompatActivity() {
             getCon(url)
             add_text("                                   "+URLDecoder.decode("${json["folderName"]}, ", "UTF-8"), json)
             url =
-                ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNFactory&men=getPersistable&oid=winnum.org.product.WNProduct:$qrCodeValue&mode=yes")
+                ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNFactory&men=getPersistable&oid=winnum.org.product.WNProduct:$pi&mode=yes")
             getCon(url)
             add_text(
                 URLDecoder.decode(
@@ -99,18 +101,18 @@ class SecondActivity : AppCompatActivity() {
         }
     }
 
-    fun get_operator_data(operator_code_signal:String,qrCodeValue:Int){
+    fun get_operator_data(operator_code_signal:String,qrCodeValue:String){
         try {
             var url = ("""$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNApplicationHelper&men=getApplicationTag&oid=winnum.org.app.WNApplicationInstance:1&tag=NC_OPERATOR&mode=yes""")
             getCon(url)
             val operator_tag = URLDecoder.decode("${json["id"]}","UTF-8").replace("\"","").replace(", ","")
             url =
-                ("""$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNApplicationTagHelper&men=getLastTagCalculationValue&appid=winnum.org.app.WNApplicationInstance:1&pid=winnum.org.product.WNProduct:$qrCodeValue&tid=$operator_tag&mode=yes""")
+                ("""$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNApplicationTagHelper&men=getLastTagCalculationValue&appid=winnum.org.app.WNApplicationInstance:1&pid=winnum.org.product.WNProduct:$pi&tid=$operator_tag&mode=yes""")
             getCon(url)
             add_text(URLDecoder.decode("Оператор: ${json["value"]}, ", "UTF-8"), json)
 
             url =
-                ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=${uuid[qrCodeValue - 1]}&signal=$operator_code_signal&stype=bycount&count=1&mode=yes")
+                ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=$qrCodeValue&signal=$operator_code_signal&stype=bycount&count=1&mode=yes")
             getCon(url)
             add_text(
                 URLDecoder.decode("${json["value"]}\n\n", "UTF-8"),
@@ -123,7 +125,7 @@ class SecondActivity : AppCompatActivity() {
         }
     }
 
-    fun get_program_name(qrCodeValue:Int) {
+    fun get_program_name(qrCodeValue:String) {
         try {
             var url =
                 ("""$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNApplicationHelper&men=getApplicationTag&oid=winnum.org.app.WNApplicationInstance:1&tag=NC_PROGRAM_NAME&mode=yes""")
@@ -131,7 +133,7 @@ class SecondActivity : AppCompatActivity() {
             val program_name_tag =
                 URLDecoder.decode("${json["id"]}", "UTF-8").replace("\"", "").replace(", ", "")
             url =
-                ("""$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNApplicationTagHelper&men=getLastTagCalculationValue&appid=winnum.org.app.WNApplicationInstance:1&pid=winnum.org.product.WNProduct:$qrCodeValue&tid=$program_name_tag&mode=yes""")
+                ("""$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNApplicationTagHelper&men=getLastTagCalculationValue&appid=winnum.org.app.WNApplicationInstance:1&pid=winnum.org.product.WNProduct:$pi&tid=$program_name_tag&mode=yes""")
             getCon(url)
             add_text(URLDecoder.decode("                                           "+"УП\n\n${json["value"]}, ", "UTF-8"), json)
         } catch (e: Exception) {
@@ -140,14 +142,14 @@ class SecondActivity : AppCompatActivity() {
         }
     }
 
-    fun get_DSE_data(DSE_name:String,DSE_id:String,qrCodeValue:Int): String {
+    fun get_DSE_data(DSE_name:String,DSE_id:String,qrCodeValue:String): String {
         var DSE_id_time = ""
         try {
-            var url = ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=${uuid[qrCodeValue-1]}&signal=$DSE_name&stype=bycount&count=1&mode=yes")
+            var url = ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=$qrCodeValue&signal=$DSE_name&stype=bycount&count=1&mode=yes")
             getCon(url)
             add_text(URLDecoder.decode("${json["value"]} ", "UTF-8"), json)
 
-            url = ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=${uuid[qrCodeValue-1]}&signal=$DSE_id&stype=bycount&count=1&mode=yes")
+            url = ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=$qrCodeValue&signal=$DSE_id&stype=bycount&count=1&mode=yes")
             getCon(url)
             add_text(URLDecoder.decode("${json["value"]},\n", "UTF-8"), json)
             DSE_id_time = URLDecoder.decode("${json["event_time"]},\n", "UTF-8").replace("\"","")
@@ -159,15 +161,15 @@ class SecondActivity : AppCompatActivity() {
         return DSE_id_time
     }
 
-    fun get_operation_data(operation_number_signal:String,DSE_time:String,DSE_id_time:String,currentDateTime:String,dateFormat:SimpleDateFormat,qrCodeValue:Int){
+    fun get_operation_data(operation_number_signal:String,DSE_time:String,DSE_id_time:String,currentDateTime:String,dateFormat:SimpleDateFormat,qrCodeValue:String){
         try {
             var url =
-                ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=${uuid[qrCodeValue - 1]}&signal=$operation_number_signal&stype=bycount&count=1&mode=yes")
+                ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=$qrCodeValue&signal=$operation_number_signal&stype=bycount&count=1&mode=yes")
             getCon(url)
             add_text(URLDecoder.decode("операция ${json["value"]}, ", "UTF-8"), json)
 
             url =
-                ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=${uuid[qrCodeValue - 1]}&signal=$DSE_time&stype=bycount&count=1&mode=yes")
+                ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=$qrCodeValue&signal=$DSE_time&stype=bycount&count=1&mode=yes")
             getCon(url)
             val df = DecimalFormat("0.00")
             val ready_time = df.format(
@@ -189,15 +191,15 @@ class SecondActivity : AppCompatActivity() {
         }
     }
 
-    fun get_ready_data(done_operations_signal:String,not_done_operations_signal:String,qrCodeValue:Int) {
+    fun get_ready_data(done_operations_signal:String,not_done_operations_signal:String,qrCodeValue:String) {
         try {
             var url =
-                ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=${uuid[qrCodeValue - 1]}&signal=$done_operations_signal&stype=bycount&count=1&mode=yes")
+                ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=$qrCodeValue&signal=$done_operations_signal&stype=bycount&count=1&mode=yes")
             getCon(url)
             add_text(URLDecoder.decode("Готово ${json["value"]} из ", "UTF-8"), json)
 
             url =
-                ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=${uuid[qrCodeValue - 1]}&signal=$not_done_operations_signal&stype=bycount&count=1&mode=yes")
+                ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=$qrCodeValue&signal=$not_done_operations_signal&stype=bycount&count=1&mode=yes")
             getCon(url)
             add_text(URLDecoder.decode("${json["value"]}\n\n", "UTF-8"), json)
         }catch (e: Exception) {
@@ -206,22 +208,22 @@ class SecondActivity : AppCompatActivity() {
         }
     }
 
-    fun get_shift_data(currentDateTime:String,dateFormat:SimpleDateFormat,qrCodeValue:Int) {
+    fun get_shift_data(currentDateTime:String,dateFormat:SimpleDateFormat,qrCodeValue:String) {
         try {
             var url =
-                ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNCalendarHelper&men=getCurrentWorkShift&oid=winnum.org.product.WNProduct:$qrCodeValue&mode=yes")
+                ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNCalendarHelper&men=getCurrentWorkShift&oid=winnum.org.product.WNProduct:$pi&mode=yes")
             getCon(url)
             val shift_id = URLDecoder.decode(json[0]["id"].toString(), "UTF-8").replace("\"", "")
 
             url =
-                ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNCalendarHelper&men=getCurrentWorkShiftStartDate&oid=winnum.org.product.WNProduct:$qrCodeValue&mode=yes")
+                ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNCalendarHelper&men=getCurrentWorkShiftStartDate&oid=winnum.org.product.WNProduct:$pi&mode=yes")
             getCon(url)
             val shift_start =
                 URLDecoder.decode(json["datetime"].toString(), "UTF-8").replace("\"", "")
                     .replace(" ", "%20")
 
             url =
-                ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNCNCApplicationTagHelper&men=getLoadingCalculation&appid=winnum.org.app.WNApplicationInstance:1&pid=winnum.org.product.WNProduct:$qrCodeValue&from=$shift_start&till=$currentDateTime&rounding=2&adjust=true&mode=yes")
+                ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNCNCApplicationTagHelper&men=getLoadingCalculation&appid=winnum.org.app.WNApplicationInstance:1&pid=winnum.org.product.WNProduct:$pi&from=$shift_start&till=$currentDateTime&rounding=2&adjust=true&mode=yes")
             getCon(url)
             var i = 0
             //val work_time = arrayOf(0.00F)
@@ -275,8 +277,8 @@ class SecondActivity : AppCompatActivity() {
         }
     }
 
-    fun get_work_start_data(operator_signal:String,qrCodeValue:Int){
-        val url = ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=${uuid[qrCodeValue-1]}&signal=$operator_signal&stype=bycount&count=1000&mode=yes")
+    fun get_work_start_data(operator_signal:String,qrCodeValue:String){
+        val url = ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=$qrCodeValue&signal=$operator_signal&stype=bycount&count=1000&mode=yes")
         getCon(url)
         var i = 1
         while (i < json.size()) {
@@ -288,19 +290,39 @@ class SecondActivity : AppCompatActivity() {
         }
     }
 
+    fun getpi(qrCodeValue: String){
+        var url = "fdfd"
+        fun getpi2() {
+            try {
+                pi += 1
+                url =
+                    "$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNFactory&men=getPersistable&oid=winnum.org.product.WNProduct:$pi&mode=yes"
+                getCon(url)
+                if (json["ProductUUID"].toString().replace("\"", "") != qrCodeValue) {
+                    getpi2()
+                }
+            } catch (e: Exception) {
+                text = ""
+                getpi2()
+            }
+        }
+        getpi2()
+    }
+
     @SuppressLint("SimpleDateFormat")
     @RequiresApi(Build.VERSION_CODES.O)
     fun getData() {
         try {
 
-            val qrCodeValue =intent.getStringExtra("qrCodeValue").toString().toInt()
+            val qrCodeValue = "91528AAD-2D7C-43BE-B765-192E89BF3C77"
+                //intent.getStringExtra("qrCodeValue").toString()
             val currentDate = LocalDateTime.now(ZoneId.of("Europe/Moscow"))
             val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
             //val month = currentDate.minusDays(30).toString().replace("T","%20")
             //val week = currentDate.minusDays(7).toString().replace("T","%20")
             val currentDateTime =  currentDate.toString().replace("T","%20").substring(0,25)
-
-            var url =("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNFactory&men=getPersistable&oid=winnum.org.product.WNProduct:$qrCodeValue&mode=yes")
+            getpi(qrCodeValue)
+            var url =("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNFactory&men=getPersistable&oid=winnum.org.product.WNProduct:$pi&mode=yes")
             getCon(url)
             get_product_info(qrCodeValue)
             val template = (URLDecoder.decode("${json["TemplateInfo__idA12"]}, ","UTF-8")).replace("\"","").replace(", ","")
