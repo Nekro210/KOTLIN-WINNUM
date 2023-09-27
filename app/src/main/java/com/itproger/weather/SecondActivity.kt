@@ -38,7 +38,9 @@ class SecondActivity : AppCompatActivity() {
     private val password = "wnadmin"
     private val user = "wnadmin"
     //private val uuid= Array<String>
-    private val ip_port = "http://10.0.0.2:82"
+    private var ip_port = ""
+    private var tags = ""
+    //"http://10.0.2.2:82"
     //"http://192.168.0.101:80"
     private val objectMapper = ObjectMapper()
     private var json:JsonNode= objectMapper.createObjectNode()
@@ -68,7 +70,7 @@ class SecondActivity : AppCompatActivity() {
                 json = json["item"]
 
         } catch (e: Exception) {
-                text += "\nПроизошла ошибка, не удалось получить данные(\n"
+                text += " Error "
                 Log.d("ERRORTYPE", e.message.toString())
             }
     }
@@ -96,7 +98,7 @@ class SecondActivity : AppCompatActivity() {
             )
         }
         catch (e: Exception) {
-            text += "\nПроизошла ошибка, не удалось получить данные(\n"
+            text += " Error "
             Log.d("ERRORTYPE", e.message.toString())
         }
     }
@@ -120,7 +122,7 @@ class SecondActivity : AppCompatActivity() {
             )
         }
         catch (e: Exception) {
-            text += "\nПроизошла ошибка, не удалось получить данные(\n"
+            text += " Error "
             Log.d("ERRORTYPE", e.message.toString())
         }
     }
@@ -137,7 +139,7 @@ class SecondActivity : AppCompatActivity() {
             getCon(url)
             add_text(URLDecoder.decode("                                           "+"УП\n\n${json["value"]}, ", "UTF-8"), json)
         } catch (e: Exception) {
-            text += "\nПроизошла ошибка, не удалось получить данные(\n"
+            text += " Error "
             Log.d("ERRORTYPE", e.message.toString())
         }
     }
@@ -149,13 +151,21 @@ class SecondActivity : AppCompatActivity() {
             getCon(url)
             add_text(URLDecoder.decode("${json["value"]} ", "UTF-8"), json)
 
-            url = ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=$qrCodeValue&signal=$DSE_id&stype=bycount&count=1&mode=yes")
+            url = ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=$qrCodeValue&signal=$DSE_id&stype=bycount&count=10000&mode=yes")
             getCon(url)
-            add_text(URLDecoder.decode("${json["value"]},\n", "UTF-8"), json)
-            DSE_id_time = URLDecoder.decode("${json["event_time"]},\n", "UTF-8").replace("\"","")
+            //add_text(URLDecoder.decode("${json["value"]},\n", "UTF-8"), json)
+            var i = 1
+            while (i < json.size()) {
+                if (json[i-1]["value"].toString() != json[i]["value"].toString()){
+                    add_text(URLDecoder.decode("${json[i-1]["value"]},\n", "UTF-8"), json)
+                    break
+                }
+                i++
+            }
+            DSE_id_time = URLDecoder.decode("${json[i-1]["event_time"]},\n", "UTF-8").replace("\"","")
 
         } catch (e: Exception) {
-            text += "\nПроизошла ошибка, не удалось получить данные(\n"
+            text += " Error "
             Log.d("ERRORTYPE", e.message.toString())
         }
         return DSE_id_time
@@ -186,7 +196,7 @@ class SecondActivity : AppCompatActivity() {
 
             add_text("готовность ${ready_time}%\n\n", json)
         }catch (e: Exception) {
-            text += "\nПроизошла ошибка, не удалось получить данные(\n"
+            text += " Error "
             Log.d("ERRORTYPE", e.message.toString())
         }
     }
@@ -203,12 +213,12 @@ class SecondActivity : AppCompatActivity() {
             getCon(url)
             add_text(URLDecoder.decode("${json["value"]}\n\n", "UTF-8"), json)
         }catch (e: Exception) {
-            text += "\nПроизошла ошибка, не удалось получить данные(\n"
+            text += " Error "
             Log.d("ERRORTYPE", e.message.toString())
         }
     }
 
-    fun get_shift_data(currentDateTime:String,dateFormat:SimpleDateFormat,qrCodeValue:String) {
+    fun get_shift_data(currentDateTime:String,dateFormat:SimpleDateFormat,qrCodeValue:String,arrayOfTags: Array<String>) {
         try {
             var url =
                 ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNCalendarHelper&men=getCurrentWorkShift&oid=winnum.org.product.WNProduct:$pi&mode=yes")
@@ -237,11 +247,7 @@ class SecondActivity : AppCompatActivity() {
                         if (!(URLDecoder.decode(
                                 json[i]["tagName"].toString(),
                                 "UTF-8"
-                            ) in arrayOf(
-                                "\"Аварийная остановка\"",
-                                "\"Станок выключен\"",
-                                "\"Станок включен\""
-                            ))
+                            ) in arrayOfTags)
                         ) {
                             entries.add(
                                 PieEntry(
@@ -272,22 +278,28 @@ class SecondActivity : AppCompatActivity() {
             entries.add(PieEntry(no_work_time[0], "Время простоя"))
             add_text(text_work, json)
         }catch (e: Exception) {
-            text += "\nПроизошла ошибка, не удалось получить данные(\n"
+            text += " Error "
             Log.d("ERRORTYPE", e.message.toString())
         }
     }
 
     fun get_work_start_data(operator_signal:String,qrCodeValue:String){
+        try{
         val url = ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=$qrCodeValue&signal=$operator_signal&stype=bycount&count=1000&mode=yes")
         getCon(url)
         var i = 1
         while (i < json.size()) {
             if (json[i-1]["value"].toString() != json[i]["value"].toString()){
-                add_text(URLDecoder.decode("Начало работы: ${json[i-1]["event_time"]}","UTF-8").substring(0,35), json)
+                add_text(URLDecoder.decode("Начало работы: ${json[i-1]["event_time"]}\n","UTF-8").substring(0,35), json)
+                add_text("\n",json)
                 break
             }
             i++
         }
+    }catch (e: Exception) {
+        text += " Error "
+        Log.d("ERRORTYPE", e.message.toString())
+    }
     }
 
     fun getpi(qrCodeValue: String){
@@ -313,13 +325,17 @@ class SecondActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     fun getData() {
         try {
+            val intent = getIntent()
+            ip_port = "http://${intent.getStringExtra("ip_port").toString()}"
+            tags = intent.getStringExtra("tags").toString()
+            val qrCodeValue = intent.getStringExtra("qrCodeValue").toString()
+                //"91528AAD-2D7C-43BE-B765-192E89BF3C77"
 
-            val qrCodeValue = "91528AAD-2D7C-43BE-B765-192E89BF3C77"
-                //intent.getStringExtra("qrCodeValue").toString()
             val currentDate = LocalDateTime.now(ZoneId.of("Europe/Moscow"))
             val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
             //val month = currentDate.minusDays(30).toString().replace("T","%20")
             //val week = currentDate.minusDays(7).toString().replace("T","%20")
+            val arrayOfTags = tags.split(" ").toTypedArray()
             val currentDateTime =  currentDate.toString().replace("T","%20").substring(0,25)
             getpi(qrCodeValue)
             var url =("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNFactory&men=getPersistable&oid=winnum.org.product.WNProduct:$pi&mode=yes")
@@ -346,8 +362,8 @@ class SecondActivity : AppCompatActivity() {
                     operation_number_signal = URLDecoder.decode("${json[i]["asciiPartNumber"]}, ","UTF-8").replace("\"","").replace(", ","")
                 if (URLDecoder.decode("${json[i]["signalName"]}, ","UTF-8").replace("\"","").replace(", ","") == "Оператор (ФИО)")
                     operator_signal = URLDecoder.decode("${json[i]["asciiPartNumber"]}, ","UTF-8").replace("\"","").replace(", ","")
-                if (URLDecoder.decode("${json[i]["signalName"]}, ","UTF-8").replace("\"","").replace(", ","") == "Количество сданных деталей")
-                    done_operations_signal = URLDecoder.decode("${json[i]["asciiPartNumber"]}, ","UTF-8").replace("\"","").replace(", ","")
+               // if (URLDecoder.decode("${json[i]["signalName"]}, ","UTF-8").replace("\"","").replace(", ","") == "Количество сданных деталей")
+                //    done_operations_signal = URLDecoder.decode("${json[i]["asciiPartNumber"]}, ","UTF-8").replace("\"","").replace(", ","")
                 if (URLDecoder.decode("${json[i]["signalName"]}, ","UTF-8").replace("\"","").replace(", ","") == "Количество полученных деталей")
                     not_done_operations_signal = URLDecoder.decode("${json[i]["asciiPartNumber"]}, ","UTF-8").replace("\"","").replace(", ","")
                 if (URLDecoder.decode("${json[i]["signalName"]}, ","UTF-8").replace("\"","").replace(", ","") == "ДСЕ")
@@ -359,6 +375,14 @@ class SecondActivity : AppCompatActivity() {
                 i++
             }
 
+            url = ("""$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNApplicationHelper&men=getApplicationTag&oid=winnum.org.app.WNApplicationInstance:1&tag=NC_PART_COUNTER&mode=yes""")
+            getCon(url)
+            val done_operations_signal_id = URLDecoder.decode("${json["id"]}, ","UTF-8").replace("\"","").replace(", ","")
+            url =
+                ("""$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNApplicationTagHelper&men=getLastTagCalculationValue&appid=winnum.org.app.WNApplicationInstance:1&pid=winnum.org.product.WNProduct:$pi&tid=$done_operations_signal_id&mode=yes""")
+            getCon(url)
+            done_operations_signal = URLDecoder.decode("${json["value"]}, ","UTF-8").replace("\"","").replace(", ","")
+
             get_operator_data(operator_code_signal,qrCodeValue)
 
             get_program_name(qrCodeValue)
@@ -369,9 +393,10 @@ class SecondActivity : AppCompatActivity() {
 
             get_ready_data(done_operations_signal, not_done_operations_signal,qrCodeValue)
 
-            get_shift_data(currentDateTime, dateFormat,qrCodeValue)
-
             get_work_start_data(operator_signal,qrCodeValue)
+
+            get_shift_data(currentDateTime, dateFormat,qrCodeValue,arrayOfTags)
+
 
             //add_text(URLDecoder.decode("Начало работы: ${json["event_time"]}","UTF-8"), json) // изменить!!!!!!!!!
 //            url =
@@ -404,7 +429,7 @@ class SecondActivity : AppCompatActivity() {
 //                add_text("Аварийная остановка\n", json)
         }
         catch (e: Exception) {
-            text += "\nПроизошла ошибка, не удалось получить данные(\n"
+            text += " Error "
             Log.d("ERRORTYPE", e.message.toString())
         }
     }

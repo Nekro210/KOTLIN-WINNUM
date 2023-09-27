@@ -32,11 +32,17 @@ class QR_ACTIVITY : AppCompatActivity() {
         if (result != null) {
             if (result.contents == null) {
                 Toast.makeText(this, "Отменено", Toast.LENGTH_LONG).show()
+                startActivity(Intent(this, MainActivity2::class.java))
             } else {
                 val qrCodeValue = result.contents
-                Toast.makeText(this, "Станок №$qrCodeValue", Toast.LENGTH_LONG).show()
-                val intent = (Intent(this, SecondActivity::class.java))
+                var intent = getIntent()
+                val ip_port = intent.getStringExtra("ip_port").toString()
+                val tags = intent.getStringExtra("tags").toString()
+                Toast.makeText(this, "Станок $qrCodeValue", Toast.LENGTH_LONG).show()
+                intent = (Intent(this, SecondActivity::class.java))
                 intent.putExtra("qrCodeValue", qrCodeValue)
+                intent.putExtra("tags", tags)
+                intent.putExtra("ip_port",ip_port)
                 startActivity(intent)
 
                 // Дальнейшая обработка значения QR-кода

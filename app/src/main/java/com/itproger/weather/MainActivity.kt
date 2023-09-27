@@ -27,7 +27,7 @@ class MainActivity : AppCompatActivity() {
 
         main_btn?.setOnClickListener {
             if(user_field?.text?.toString()?.trim()?.equals("777") == true)
-                startActivity(Intent(this, QR_ACTIVITY::class.java))
+                startActivity(Intent(this, MainActivity2::class.java))
             else
                 Toast.makeText(this, "Неправильный пароль", Toast.LENGTH_SHORT).show()
         }
