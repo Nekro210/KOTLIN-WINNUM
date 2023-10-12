@@ -1,6 +1,8 @@
 package com.itproger.weather
 
+//import android.R
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
@@ -26,7 +28,7 @@ import java.net.URLDecoder
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
-import java.time.ZoneId
+import java.time.ZoneOffset
 import kotlin.math.abs
 
 
@@ -35,6 +37,7 @@ class SecondActivity : AppCompatActivity() {
     private var text = ""
     private var pieChart: PieChart? = null
     private val entries: ArrayList<PieEntry> = ArrayList()
+    private val tag_colors: ArrayList<Int> = ArrayList()
     private val password = "wnadmin"
     private val user = "wnadmin"
     //private val uuid= Array<String>
@@ -86,7 +89,7 @@ class SecondActivity : AppCompatActivity() {
             var url =
                 ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNFactory&men=getPersistable&oid=winnum.org.folder.WNFolder:$folder_id&mode=yes")
             getCon(url)
-            add_text("                                   "+URLDecoder.decode("${json["folderName"]}, ", "UTF-8"), json)
+            add_text(URLDecoder.decode("${json["folderName"]}, ", "UTF-8"), json)
             url =
                 ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNFactory&men=getPersistable&oid=winnum.org.product.WNProduct:$pi&mode=yes")
             getCon(url)
@@ -137,7 +140,7 @@ class SecondActivity : AppCompatActivity() {
             url =
                 ("""$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNApplicationTagHelper&men=getLastTagCalculationValue&appid=winnum.org.app.WNApplicationInstance:1&pid=winnum.org.product.WNProduct:$pi&tid=$program_name_tag&mode=yes""")
             getCon(url)
-            add_text(URLDecoder.decode("                                           "+"УП\n\n${json["value"]}, ", "UTF-8"), json)
+            add_text(URLDecoder.decode("УП\n\n${json["value"]}, ", "UTF-8"), json)
         } catch (e: Exception) {
             text += " Error "
             Log.d("ERRORTYPE", e.message.toString())
@@ -151,18 +154,18 @@ class SecondActivity : AppCompatActivity() {
             getCon(url)
             add_text(URLDecoder.decode("${json["value"]} ", "UTF-8"), json)
 
-            url = ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=$qrCodeValue&signal=$DSE_id&stype=bycount&count=10000&mode=yes")
+            url = ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=$qrCodeValue&signal=$DSE_id&stype=bycount&count=1000&mode=yes")
             getCon(url)
             //add_text(URLDecoder.decode("${json["value"]},\n", "UTF-8"), json)
             var i = 1
             while (i < json.size()) {
                 if (json[i-1]["value"].toString() != json[i]["value"].toString()){
                     add_text(URLDecoder.decode("${json[i-1]["value"]},\n", "UTF-8"), json)
+                    DSE_id_time = URLDecoder.decode("${json[i-1]["event_time"]},\n", "UTF-8").replace("\"","")
                     break
                 }
                 i++
             }
-            DSE_id_time = URLDecoder.decode("${json[i-1]["event_time"]},\n", "UTF-8").replace("\"","")
 
         } catch (e: Exception) {
             text += " Error "
@@ -218,7 +221,8 @@ class SecondActivity : AppCompatActivity() {
         }
     }
 
-    fun get_shift_data(currentDateTime:String,dateFormat:SimpleDateFormat,qrCodeValue:String,arrayOfTags: Array<String>) {
+    @SuppressLint("SuspiciousIndentation")
+    fun get_shift_data(currentDateTime:String, dateFormat:SimpleDateFormat, qrCodeValue:String, arrayOfTags: Array<String>) {
         try {
             var url =
                 ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNCalendarHelper&men=getCurrentWorkShift&oid=winnum.org.product.WNProduct:$pi&mode=yes")
@@ -235,38 +239,64 @@ class SecondActivity : AppCompatActivity() {
             url =
                 ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNCNCApplicationTagHelper&men=getLoadingCalculation&appid=winnum.org.app.WNApplicationInstance:1&pid=winnum.org.product.WNProduct:$pi&from=$shift_start&till=$currentDateTime&rounding=2&adjust=true&mode=yes")
             getCon(url)
+            //http://localhost:82/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNCNCApplicationTagHelper&men=getLoadingCalculation&appid=winnum.org.app.WNApplicationInstance:1&pid=winnum.org.product.WNProduct:1&from=2023-10-01%2008:00:00&till=2023-10-01%2015:51:00&rounding=2&adjust=true&mode=yes
             var i = 0
             //val work_time = arrayOf(0.00F)
             val no_work_time = arrayOf(0.00F)
-            val text_work = "                               "+"Показатели cмены\n\n"
+            val off_time = arrayOf(0.00F)
+            val tags_ids: ArrayList<String> = ArrayList()
             while (i < json.size()) {
                 if (URLDecoder.decode(json[i]["shiftOid"].toString(), "UTF-8") == "\"$shift_id\"") {
+                    Log.d(URLDecoder.decode(("${json[i]["tagName"]}"), "UTF-8"),
+                        URLDecoder.decode("${json[i]["hours"]}", "UTF-8").toString()
+                            .replace("\"", "")
+                    )
                     if (URLDecoder.decode("${json[i]["percent"]}", "UTF-8").toString()
                             .replace("\"", "").toFloat() > 0.0F
-                    )
-                        if (!(URLDecoder.decode(
-                                json[i]["tagName"].toString(),
+                    ) {
+                        if ((URLDecoder.decode(
+                                json[i]["tagId"].toString(),
                                 "UTF-8"
-                            ) in arrayOfTags)
+                            ).replace("\"", "") != "NC_OFF")
                         ) {
-                            entries.add(
-                                PieEntry(
-                                    URLDecoder.decode("${json[i]["hours"]}", "UTF-8").toString()
-                                        .replace("\"", "").toFloat(),
-                                    URLDecoder.decode(("${json[i]["tagName"]}"), "UTF-8")
-                                )
-                            )
-                            no_work_time[0] -= json[i]["hours"].toString().replace("\"", "")
+                            off_time[0] -= json[i]["hours"].toString().replace("\"", "")
                                 .toFloat()
-                            //add_text(no_work_time[0].toString(), json)
 
-                            //text_work += URLDecoder.decode(("${json[i]["tagName"]}: ${json[i]["hours"]} часов (${json[i]["percent"]}"),"UTF-8")
+                            if (URLDecoder.decode(
+                                    json[i]["tagId"].toString(),
+                                    "UTF-8"
+                                ).replace("\"", "") !in arrayOfTags
+                            ) {
+                                tags_ids.add(
+                                    URLDecoder.decode(
+                                        json[i]["tagId"].toString(),
+                                        "UTF-8"
+                                    ).replace("\"", "")
+                                )
+                                entries.add(
+                                    PieEntry(
+                                        URLDecoder.decode("${json[i]["hours"]}", "UTF-8")
+                                            .toString()
+                                            .replace("\"", "").toFloat(),
+                                        URLDecoder.decode(("${json[i]["tagName"]}"), "UTF-8")
+                                    )
+                                )
+                                //add_text(no_work_time[0].toString(), json)
+
+                                //text_work += URLDecoder.decode(("${json[i]["tagName"]}: ${json[i]["hours"]} часов (${json[i]["percent"]}"),"UTF-8")
+                            } else {
+                                    no_work_time[0] += json[i]["hours"].toString().replace("\"", "")
+                                        .toFloat()
+
+
+                            }
                         }
+                    }
                 }
                 i++
             }
             //text_work +=" %)\n"
-            no_work_time[0] += ((
+            off_time[0] += ((
                 dateFormat.parse(
                     currentDateTime.replace(
                         "%20",
@@ -274,9 +304,35 @@ class SecondActivity : AppCompatActivity() {
                     )
                 ).time - dateFormat.parse(shift_start.replace("%20", " ")).time
             )).toFloat() / (1000 * 60 * 60)
-            no_work_time[0] = abs(no_work_time[0])
-            entries.add(PieEntry(no_work_time[0], "Время простоя"))
-            add_text(text_work, json)
+            if (off_time[0]<=0F)
+                off_time[0]= 0F
+            else {
+
+                if ("NC_OFF" in arrayOfTags)
+                    no_work_time[0] += off_time[0]
+                else {
+                        entries.add(PieEntry(off_time[0], "Станок выключен"))
+                        tags_ids.add("NC_OFF")
+                }
+            }
+            add_text("Показатели cмены", json)
+            if (no_work_time[0]>0.0F) {
+                entries.add(PieEntry(no_work_time[0], "Время простоя"))
+
+                if ("NC_OFF" in tags_ids)
+                    tags_ids.add("NC_ON")
+                else
+                    tags_ids.add("NC_OFF")
+            }
+            i=0
+            while (i < tags_ids.size) {
+                url =("""$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNApplicationHelper&men=getApplicationTag&oid=winnum.org.app.WNApplicationInstance:1&tag=${tags_ids[i]}&mode=yes""")
+                getCon(url)
+                tag_colors.add(Color.parseColor(
+                    URLDecoder.decode("${json["tagColor"]}", "UTF-8").toString()
+                        .replace("\"", "")))
+                i++
+            }
         }catch (e: Exception) {
             text += " Error "
             Log.d("ERRORTYPE", e.message.toString())
@@ -290,7 +346,7 @@ class SecondActivity : AppCompatActivity() {
         var i = 1
         while (i < json.size()) {
             if (json[i-1]["value"].toString() != json[i]["value"].toString()){
-                add_text(URLDecoder.decode("Начало работы: ${json[i-1]["event_time"]}\n","UTF-8").substring(0,35), json)
+                add_text(URLDecoder.decode("Начало работы: ${json[i-1]["event_time"]}\n\n","UTF-8").substring(0,35), json)
                 add_text("\n",json)
                 break
             }
@@ -328,10 +384,11 @@ class SecondActivity : AppCompatActivity() {
             val intent = getIntent()
             ip_port = "http://${intent.getStringExtra("ip_port").toString()}"
             tags = intent.getStringExtra("tags").toString()
-            val qrCodeValue = intent.getStringExtra("qrCodeValue").toString()
+            val qrCodeValue = "91528AAD-2D7C-43BE-B765-192E89BF3C77"
+                ///intent.getStringExtra("qrCodeValue").toString()
                 //"91528AAD-2D7C-43BE-B765-192E89BF3C77"
-
-            val currentDate = LocalDateTime.now(ZoneId.of("Europe/Moscow"))
+            val zoneId = ZoneOffset.UTC
+            val currentDate = LocalDateTime.now(zoneId)
             val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
             //val month = currentDate.minusDays(30).toString().replace("T","%20")
             //val week = currentDate.minusDays(7).toString().replace("T","%20")
@@ -370,10 +427,12 @@ class SecondActivity : AppCompatActivity() {
                     DSE_id = URLDecoder.decode("${json[i]["asciiPartNumber"]}, ","UTF-8").replace("\"","").replace(", ","")
                 if (URLDecoder.decode("${json[i]["signalName"]}, ","UTF-8").replace("\"","").replace(", ","") == "Наименование ДСЕ")
                     DSE_name = URLDecoder.decode("${json[i]["asciiPartNumber"]}, ","UTF-8").replace("\"","").replace(", ","")
-                if (URLDecoder.decode("${json[i]["signalName"]}, ","UTF-8").replace("\"","").replace(", ","") == "Норма времени")
-                    DSE_time = URLDecoder.decode("${json[i]["asciiPartNumber"]}, ","UTF-8").replace("\"","").replace(", ","")
                 i++
             }
+            url = "$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNModelingHelper&men=getSignalByParam&pid=winnum.org.product.WNProduct:$pi&paramName=code_WNWPadNoResizeSignal&paramValue=current_part_rate&signalType=0&mode=yes"
+            getCon(url)
+
+            DSE_time = URLDecoder.decode("${json["asciiPartNumber"]}, ","UTF-8").replace("\"","").replace(", ","")
 
             url = ("""$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNApplicationHelper&men=getApplicationTag&oid=winnum.org.app.WNApplicationInstance:1&tag=NC_PART_COUNTER&mode=yes""")
             getCon(url)
@@ -456,6 +515,7 @@ class SecondActivity : AppCompatActivity() {
         dataSet.setColors(*ColorTemplate.COLORFUL_COLORS)
         dataSet.valueTextSize = 11f
         dataSet.valueTextColor = Color.BLACK
+        dataSet.setColors(tag_colors)
         // Создание PieData объекта
         val pieData = PieData(dataSet)
 
@@ -468,7 +528,6 @@ class SecondActivity : AppCompatActivity() {
         val l: Legend? = pieChart?.legend
         l?.verticalAlignment = Legend.LegendVerticalAlignment.TOP
         l?.horizontalAlignment = Legend.LegendHorizontalAlignment.LEFT
-
         l?.orientation = Legend.LegendOrientation.VERTICAL
         l?.setDrawInside(false)
         l?.xEntrySpace = 0f
@@ -481,4 +540,25 @@ class SecondActivity : AppCompatActivity() {
             }
         }
     }
+    @SuppressLint("SuspiciousIndentation")
+    @Deprecated("Deprecated in Java")
+    override fun onBackPressed() {
+        val intent = Intent(
+                this,
+                MainActivity2::class.java
+            ) // Замените Page1Activity на ваш класс Activity
+            startActivity(intent)
+            finish()
+
+    }
+
+
 }
+
+// диаграмма
+// логин и пароль
+// настройки
+// Error и шрифты
+// Красный цвет процентов
+// Обновление страницы раз в минуту
+// Шрифт калибри или робот

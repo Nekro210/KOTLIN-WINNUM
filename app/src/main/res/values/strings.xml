@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Weather App</string>
-    <string name="logo">Введите пароль</string>
+    <string name="logo">Войдите в Winnum</string>
     <string name="hint_user_field">Пароль</string>
     <string name="main_btn">Войти</string>
     <string name="no_user_input">Неправильный пароль</string>
@@ -20,12 +20,13 @@
     <string name="next">Next</string>
     <string name="previous">Previous</string>
     <string name="ip_port">192.168.0.1:80</string>
-    <string name="tags">Станок выключен Аварийная остановка Станок включен
+    <string name="tags">NC_ON NC_EMERGENCY_STOP NC_OFF
     </string>
-    <string name="tag">Аварийная остановка</string>
+    <string name="tag">NC_EMERGENCY_STOP</string>
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <string name="ip_winnum">Введите ip и порт сервера Winnum</string>
     <string name="enter_tags">Введите теги, составляющие время простоя через пробел</string>
     <string name="Next">Далее</string>
+    <string name="login">Логин</string>
 </resources>
