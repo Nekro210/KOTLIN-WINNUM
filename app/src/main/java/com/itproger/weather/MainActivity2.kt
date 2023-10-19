@@ -7,6 +7,7 @@ import android.content.SharedPreferences.Editor
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity2 : AppCompatActivity() {
@@ -39,6 +40,7 @@ class MainActivity2 : AppCompatActivity() {
             user_field3?.setText(pref.getString("tags",getString(R.string.tags)))
             val intent = (Intent(this, MainActivity::class.java))
             startActivity(intent)
+            Toast.makeText(this, "Настройки сохранены", Toast.LENGTH_SHORT).show()
         }
     }
     @SuppressLint("SuspiciousIndentation")
