@@ -37,11 +37,7 @@ class MainActivity2 : AppCompatActivity() {
             edit.apply()
             user_field2?.setText(pref.getString("ip", getString(R.string.ip_port)))
             user_field3?.setText(pref.getString("tags",getString(R.string.tags)))
-            val intent = (Intent(this, SecondActivity::class.java))
-            val ipp = pref.getString("ip", getString(R.string.ip_port))
-            val tgg = pref.getString("tags",getString(R.string.tags))
-            intent.putExtra("ip_port", ipp)
-            intent.putExtra("tags", tgg)
+            val intent = (Intent(this, MainActivity::class.java))
             startActivity(intent)
         }
     }
@@ -51,7 +47,7 @@ class MainActivity2 : AppCompatActivity() {
         val intent = Intent(
             this,
             MainActivity::class.java
-        ) // Замените Page1Activity на ваш класс Activity
+        )
         startActivity(intent)
         finish()
 

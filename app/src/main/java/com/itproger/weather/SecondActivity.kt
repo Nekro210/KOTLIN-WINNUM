@@ -6,8 +6,10 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.fasterxml.jackson.databind.JsonNode
@@ -38,9 +40,9 @@ class SecondActivity : AppCompatActivity() {
     private var pieChart: PieChart? = null
     private val entries: ArrayList<PieEntry> = ArrayList()
     private val tag_colors: ArrayList<Int> = ArrayList()
-    private val password = "wnadmin"
-    private val user = "wnadmin"
-    //private val uuid= Array<String>
+    //private val password = "wnadmin"
+   // private val user = "wnadmin"
+    //private /val uuid= Array<String>
     private var ip_port = ""
     private var tags = ""
     //"http://10.0.2.2:82"
@@ -48,14 +50,20 @@ class SecondActivity : AppCompatActivity() {
     private val objectMapper = ObjectMapper()
     private var json:JsonNode= objectMapper.createObjectNode()
     private var pi = -1
+    private val handler: Handler = Handler()
+    private var login = ""
+    private var password = ""
+    val intent33 = Intent(
+        this,
+        SecondActivity::class.java
+    )
 
     //private val qrCodeValue = 1
 
     @SuppressLint("SetTextI18n")
     fun getCon(url: String){
             try{
-
-                val url2 = URL("$url&usr=$user&pwd=$password")
+                val url2 = URL("$url&usr=$login&pwd=$password")
                 val con = url2.openConnection() as HttpURLConnection
                 //con.setRequestProperty("cookie","JSESSIONID=P7gU7XsgvzM95dWk3Ztptk2BUJ-lBagIHcHMvbFq.laptop-m9c07f23; _ga=GA1.1.441910024.1683486154; Studio-346eca46=2707507b-8e30-41e9-9eed-0596a626828e")
                 con.requestMethod = "GET"
@@ -73,7 +81,8 @@ class SecondActivity : AppCompatActivity() {
                 json = json["item"]
 
         } catch (e: Exception) {
-                text += " Error "
+                json = objectMapper.readValue(" ", JsonNode::class.java)
+                Toast.makeText(this, "Проверьте логин, пароль и ip", Toast.LENGTH_LONG).show()
                 Log.d("ERRORTYPE", e.message.toString())
             }
     }
@@ -83,7 +92,7 @@ class SecondActivity : AppCompatActivity() {
             text += stroka.replace("\"","")
     }
 
-    fun get_product_info(qrCodeValue:String) {
+    fun get_product_info() {
         try {
             val folder_id = json["FolderInfo__idA6"].toString().replace("\"", "").toInt() - 1
             var url =
@@ -101,7 +110,6 @@ class SecondActivity : AppCompatActivity() {
             )
         }
         catch (e: Exception) {
-            text += " Error "
             Log.d("ERRORTYPE", e.message.toString())
         }
     }
@@ -125,12 +133,11 @@ class SecondActivity : AppCompatActivity() {
             )
         }
         catch (e: Exception) {
-            text += " Error "
             Log.d("ERRORTYPE", e.message.toString())
         }
     }
 
-    fun get_program_name(qrCodeValue:String) {
+    fun get_program_name() {
         try {
             var url =
                 ("""$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNApplicationHelper&men=getApplicationTag&oid=winnum.org.app.WNApplicationInstance:1&tag=NC_PROGRAM_NAME&mode=yes""")
@@ -142,7 +149,6 @@ class SecondActivity : AppCompatActivity() {
             getCon(url)
             add_text(URLDecoder.decode("УП\n\n${json["value"]}, ", "UTF-8"), json)
         } catch (e: Exception) {
-            text += " Error "
             Log.d("ERRORTYPE", e.message.toString())
         }
     }
@@ -168,7 +174,6 @@ class SecondActivity : AppCompatActivity() {
             }
 
         } catch (e: Exception) {
-            text += " Error "
             Log.d("ERRORTYPE", e.message.toString())
         }
         return DSE_id_time
@@ -196,10 +201,13 @@ class SecondActivity : AppCompatActivity() {
                 ).toFloat() / (1000 * 60 * 60 * json["value"].toString().replace("\"", "")
                     .toFloat())
             )
+            if (ready_time.toInt() <= 100)
+                add_text("готовность ${ready_time}%\n\n", json)
+            else
+                add_text("готовность ${ready_time}% !!!\n\n", json)
 
-            add_text("готовность ${ready_time}%\n\n", json)
+
         }catch (e: Exception) {
-            text += " Error "
             Log.d("ERRORTYPE", e.message.toString())
         }
     }
@@ -216,7 +224,6 @@ class SecondActivity : AppCompatActivity() {
             getCon(url)
             add_text(URLDecoder.decode("${json["value"]}\n\n", "UTF-8"), json)
         }catch (e: Exception) {
-            text += " Error "
             Log.d("ERRORTYPE", e.message.toString())
         }
     }
@@ -236,65 +243,61 @@ class SecondActivity : AppCompatActivity() {
                 URLDecoder.decode(json["datetime"].toString(), "UTF-8").replace("\"", "")
                     .replace(" ", "%20")
 
-            url =
-                ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNCNCApplicationTagHelper&men=getLoadingCalculation&appid=winnum.org.app.WNApplicationInstance:1&pid=winnum.org.product.WNProduct:$pi&from=$shift_start&till=$currentDateTime&rounding=2&adjust=true&mode=yes")
-            getCon(url)
+
             //http://localhost:82/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNCNCApplicationTagHelper&men=getLoadingCalculation&appid=winnum.org.app.WNApplicationInstance:1&pid=winnum.org.product.WNProduct:1&from=2023-10-01%2008:00:00&till=2023-10-01%2015:51:00&rounding=2&adjust=true&mode=yes
             var i = 0
             //val work_time = arrayOf(0.00F)
             val no_work_time = arrayOf(0.00F)
             val off_time = arrayOf(0.00F)
             val tags_ids: ArrayList<String> = ArrayList()
-            while (i < json.size()) {
-                if (URLDecoder.decode(json[i]["shiftOid"].toString(), "UTF-8") == "\"$shift_id\"") {
-                    Log.d(URLDecoder.decode(("${json[i]["tagName"]}"), "UTF-8"),
-                        URLDecoder.decode("${json[i]["hours"]}", "UTF-8").toString()
-                            .replace("\"", "")
-                    )
-                    if (URLDecoder.decode("${json[i]["percent"]}", "UTF-8").toString()
+            var x = 1
+            var NC_ON_time = arrayOf(0.00F)
+            var NC_PROGRAM_RUN_time = arrayOf(0.00F)
+            val complexTagsArray = arrayOf("NC_OFF","NC_ON","NC_PROGRAM_RUN")
+            while (i < 5) {
+                url = ("""$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNApplicationTagHelper&men=getSimpleTagCalculation&appid=winnum.org.app.WNApplicationInstance:1&pid=winnum.org.product.WNProduct:$pi&tid=winnum.org.tag.WNTag:$x&from=$shift_start&till=$currentDateTime&timeout=60000&mode=yes""")
+                getCon(url)
+                    Log.d(URLDecoder.decode(("${json["tagName"]}"), "UTF-8"),URLDecoder.decode("${json["hours"]}", "UTF-8").toString().replace("\"", ""))
+                    if (URLDecoder.decode("${json["percent"]}", "UTF-8").toString()
                             .replace("\"", "").toFloat() > 0.0F
                     ) {
                         if ((URLDecoder.decode(
-                                json[i]["tagId"].toString(),
+                                json["tagId"].toString(),
                                 "UTF-8"
                             ).replace("\"", "") != "NC_OFF")
                         ) {
-                            off_time[0] -= json[i]["hours"].toString().replace("\"", "")
-                                .toFloat()
+                            off_time[0] -= json["hours"].toString().replace("\"", "").toFloat()
+                        }
 
-                            if (URLDecoder.decode(
-                                    json[i]["tagId"].toString(),
-                                    "UTF-8"
-                                ).replace("\"", "") !in arrayOfTags
-                            ) {
-                                tags_ids.add(
-                                    URLDecoder.decode(
-                                        json[i]["tagId"].toString(),
-                                        "UTF-8"
-                                    ).replace("\"", "")
-                                )
-                                entries.add(
-                                    PieEntry(
-                                        URLDecoder.decode("${json[i]["hours"]}", "UTF-8")
-                                            .toString()
-                                            .replace("\"", "").toFloat(),
-                                        URLDecoder.decode(("${json[i]["tagName"]}"), "UTF-8")
-                                    )
-                                )
-                                //add_text(no_work_time[0].toString(), json)
-
-                                //text_work += URLDecoder.decode(("${json[i]["tagName"]}: ${json[i]["hours"]} часов (${json[i]["percent"]}"),"UTF-8")
-                            } else {
-                                    no_work_time[0] += json[i]["hours"].toString().replace("\"", "")
-                                        .toFloat()
-
-
+                        if ((URLDecoder.decode(json["tagId"].toString(), "UTF-8").replace("\"", "") == "NC_ON")){
+                            NC_ON_time[0]+= json["hours"].toString().replace("\"", "").toFloat()
+                            i++
                             }
+                        else if ((URLDecoder.decode(json["tagId"].toString(), "UTF-8").replace("\"", "") == "NC_EMERGENCY_STOP")) {
+                            NC_ON_time[0] -= json["hours"].toString().replace("\"", "").toFloat()
+                            i++
+                        }
+                        else if ((URLDecoder.decode(json["tagId"].toString(), "UTF-8").replace("\"", "") == "NC_PROGRAM_RUN")) {
+                            NC_ON_time[0] -= json["hours"].toString().replace("\"", "").toFloat()
+                            NC_PROGRAM_RUN_time[0] += json["hours"].toString().replace("\"", "").toFloat()
+                            i++
+                        }
+                        else if ((URLDecoder.decode(json["tagId"].toString(), "UTF-8").replace("\"", "") == "NC_WIP")) {
+                            NC_PROGRAM_RUN_time[0] -= json["hours"].toString().replace("\"", "")
+                                .toFloat()
+                            i++
+                        }
+                        if ((URLDecoder.decode(json["tagId"].toString(), "UTF-8").replace("\"", "") in arrayOfTags))
+                            no_work_time[0] += json["hours"].toString().replace("\"", "").toFloat()
+                        else{
+                           if ((URLDecoder.decode(json["tagId"].toString(), "UTF-8").replace("\"", "") !in complexTagsArray)){
+                               entries.add(PieEntry(URLDecoder.decode("${json[i]["hours"]}", "UTF-8").toString().replace("\"", "").toFloat(), URLDecoder.decode(("${json[i]["tagName"]}"), "UTF-8")))
+                               tags_ids.add(URLDecoder.decode(("${json[i]["tagName"]}"), "UTF-8"))
+                           }
                         }
                     }
+                x++
                 }
-                i++
-            }
             //text_work +=" %)\n"
             off_time[0] += ((
                 dateFormat.parse(
@@ -316,6 +319,23 @@ class SecondActivity : AppCompatActivity() {
                 }
             }
             add_text("Показатели cмены", json)
+
+            if ("NC_ON" in arrayOfTags)
+                no_work_time[0] += NC_ON_time[0]
+            else
+            {
+                entries.add(PieEntry(NC_ON_time[0], "Станок включен"))
+                tags_ids.add("NC_ON")
+            }
+
+            if ("NC_PROGRAM_RUN" in arrayOfTags)
+                no_work_time[0] += NC_PROGRAM_RUN_time[0]
+            else
+            {
+                entries.add(PieEntry(NC_PROGRAM_RUN_time[0], "Программа выполняется"))
+                tags_ids.add("NC_PROGRAM_RUN")
+            }
+
             if (no_work_time[0]>0.0F) {
                 entries.add(PieEntry(no_work_time[0], "Время простоя"))
 
@@ -334,17 +354,16 @@ class SecondActivity : AppCompatActivity() {
                 i++
             }
         }catch (e: Exception) {
-            text += " Error "
             Log.d("ERRORTYPE", e.message.toString())
         }
     }
 
     fun get_work_start_data(operator_signal:String,qrCodeValue:String){
         try{
-        val url = ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=$qrCodeValue&signal=$operator_signal&stype=bycount&count=1000&mode=yes")
-        getCon(url)
-        var i = 1
-        while (i < json.size()) {
+            val url = ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=$qrCodeValue&signal=$operator_signal&stype=bycount&count=1000&mode=yes")
+            getCon(url)
+            var i = 1
+            while (i < json.size()) {
             if (json[i-1]["value"].toString() != json[i]["value"].toString()){
                 add_text(URLDecoder.decode("Начало работы: ${json[i-1]["event_time"]}\n\n","UTF-8").substring(0,35), json)
                 add_text("\n",json)
@@ -353,7 +372,6 @@ class SecondActivity : AppCompatActivity() {
             i++
         }
     }catch (e: Exception) {
-        text += " Error "
         Log.d("ERRORTYPE", e.message.toString())
     }
     }
@@ -381,10 +399,18 @@ class SecondActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     fun getData() {
         try {
-            val intent = getIntent()
-            ip_port = "http://${intent.getStringExtra("ip_port").toString()}"
-            tags = intent.getStringExtra("tags").toString()
-            val qrCodeValue = "91528AAD-2D7C-43BE-B765-192E89BF3C77"
+            val intent = intent
+            val pref = getSharedPreferences("test", MODE_PRIVATE)
+            password = pref.getString("password", getString(R.string.hint_user_field)).toString()
+            login = pref.getString("login",getString(R.string.login)).toString()
+            ip_port = "http://${pref.getString("ip", getString(R.string.ip_port))}"
+            tags = pref.getString("tags",getString(R.string.tags)).toString()
+            //login = intent.getStringExtra("login").toString()
+            //password = intent.getStringExtra("password").toString()
+            //ip_port = "http://${intent.getStringExtra("ip_port").toString()}"
+            //tags = intent.getStringExtra("tags").toString()
+            val qrCodeValue = intent.getStringExtra("qrCodeValue").toString()
+                //"91528AAD-2D7C-43BE-B765-192E89BF3C77"
                 ///intent.getStringExtra("qrCodeValue").toString()
                 //"91528AAD-2D7C-43BE-B765-192E89BF3C77"
             val zoneId = ZoneOffset.UTC
@@ -397,7 +423,7 @@ class SecondActivity : AppCompatActivity() {
             getpi(qrCodeValue)
             var url =("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNFactory&men=getPersistable&oid=winnum.org.product.WNProduct:$pi&mode=yes")
             getCon(url)
-            get_product_info(qrCodeValue)
+            get_product_info()
             val template = (URLDecoder.decode("${json["TemplateInfo__idA12"]}, ","UTF-8")).replace("\"","").replace(", ","")
 
             url = ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNProductHelper&men=getSignalsByProductTemplate&oid=winnum.org.modeling.WNProductTemplate:$template&mode=yes")
@@ -410,7 +436,7 @@ class SecondActivity : AppCompatActivity() {
             var not_done_operations_signal = ""
             var DSE_id = ""
             var DSE_name = ""
-            var DSE_time = ""
+            //var DSE_time = ""
             var i = 0
             while (i < json.size()) {
                 if (URLDecoder.decode("${json[i]["signalName"]}, ","UTF-8").replace("\"","").replace(", ","") == "Код оператора")
@@ -432,7 +458,7 @@ class SecondActivity : AppCompatActivity() {
             url = "$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNModelingHelper&men=getSignalByParam&pid=winnum.org.product.WNProduct:$pi&paramName=code_WNWPadNoResizeSignal&paramValue=current_part_rate&signalType=0&mode=yes"
             getCon(url)
 
-            DSE_time = URLDecoder.decode("${json["asciiPartNumber"]}, ","UTF-8").replace("\"","").replace(", ","")
+            val DSE_time = URLDecoder.decode("${json["asciiPartNumber"]}, ","UTF-8").replace("\"","").replace(", ","")
 
             url = ("""$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNApplicationHelper&men=getApplicationTag&oid=winnum.org.app.WNApplicationInstance:1&tag=NC_PART_COUNTER&mode=yes""")
             getCon(url)
@@ -444,7 +470,7 @@ class SecondActivity : AppCompatActivity() {
 
             get_operator_data(operator_code_signal,qrCodeValue)
 
-            get_program_name(qrCodeValue)
+            get_program_name()
 
             val DSE_id_time = get_DSE_data(DSE_name,DSE_id,qrCodeValue)
 
@@ -456,39 +482,8 @@ class SecondActivity : AppCompatActivity() {
 
             get_shift_data(currentDateTime, dateFormat,qrCodeValue,arrayOfTags)
 
-
-            //add_text(URLDecoder.decode("Начало работы: ${json["event_time"]}","UTF-8"), json) // изменить!!!!!!!!!
-//            url =
-//                ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNConnectorHelper&men=getSignal&uuid=${uuid[qrCodeValue - 1]}&signal=A13&stype=bycount&count=1&mode=yes")
-//            json = getCon(url)
-//            if (json["value"].toString() == "\"1\"") {
-//                add_text(
-//                    URLDecoder.decode(
-//                        "${json["event_time"]} Программа выполнялась\n",
-//                        "UTF-8"
-//                    ), json
-//                )
-//            }
-//            url =
-//                ("""$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNApplicationTagHelper&men=getLastTagCalculationValue&appid=winnum.org.app.WNApplicationInstance:1&pid=winnum.org.product.WNProduct:$qrCodeValue&tid=winnum.org.tag.WNTag:16&mode=yes""")
-//            json = getCon(url)
-//            if (json["value"].toString() == "\"2\"")
-//                add_text(("\nРабота по производственной программе\n"), json)
-//            url =
-//                ("""$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNApplicationTagHelper&men=getLastTagCalculationValue&appid=winnum.org.app.WNApplicationInstance:1&pid=winnum.org.product.WNProduct:$qrCodeValue&tid=winnum.org.tag.WNTag:2&mode=yes""")
-//            json = getCon(url)
-//            if (json["value"].toString() != "\"\"")
-//                add_text("Станок включен\n", json)
-//            else
-//                add_text("Станок выключен\n", json)
-//            url =
-//                ("""$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNApplicationTagHelper&men=getLastTagCalculationValue&appid=winnum.org.app.WNApplicationInstance:1&pid=winnum.org.product.WNProduct:$qrCodeValue&tid=winnum.org.tag.WNTag:4&mode=yes""")
-//            json = getCon(url)
-//            if (json["value"].toString() != "\"\"")
-//                add_text("Аварийная остановка\n", json)
         }
         catch (e: Exception) {
-            text += " Error "
             Log.d("ERRORTYPE", e.message.toString())
         }
     }
@@ -502,10 +497,6 @@ class SecondActivity : AppCompatActivity() {
             getData()
             runOnUiThread() {
 
-
-        //  thread.start()
-        //thread.join()
-
         result_info2?.text=text
 
         pieChart = findViewById(R.id.pieChart)
@@ -516,6 +507,7 @@ class SecondActivity : AppCompatActivity() {
         dataSet.valueTextSize = 11f
         dataSet.valueTextColor = Color.BLACK
         dataSet.setColors(tag_colors)
+
         // Создание PieData объекта
         val pieData = PieData(dataSet)
 
@@ -537,17 +529,28 @@ class SecondActivity : AppCompatActivity() {
         pieChart?.description = null
         pieChart?.animateXY(1000, 1000)
         pieChart?.invalidate()
+
+                handler.postDelayed(Runnable { // Создаем намерение (Intent) для запуска вашей Activity
+
+                    //finish()
+                    startActivity(intent33)
+
+                    // Завершаем текущую Activity (если это необходимо)
+                    //finish()
+                }, 40000) // 60,000 миллисекунд = 1 минута
+                //result_info2?.text = ""
             }
         }
+
     }
     @SuppressLint("SuspiciousIndentation")
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
-        val intent = Intent(
+        val intent4 = Intent(
                 this,
-                MainActivity2::class.java
-            ) // Замените Page1Activity на ваш класс Activity
-            startActivity(intent)
+                MainActivity::class.java
+            )
+            startActivity(intent4)
             finish()
 
     }
@@ -555,10 +558,10 @@ class SecondActivity : AppCompatActivity() {
 
 }
 
-// диаграмма
-// логин и пароль
-// настройки
-// Error и шрифты
-// Красный цвет процентов
-// Обновление страницы раз в минуту
-// Шрифт калибри или робот
+// диаграмма +
+// логин и пароль +
+// настройки +
+// Error и шрифты +
+// Красный цвет процентов +
+// Обновление страницы раз в минуту +
+// Шрифт калибри или робот +

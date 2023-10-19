@@ -1,5 +1,6 @@
 package com.itproger.weather
 
+import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.content.Intent
@@ -32,17 +33,12 @@ class QR_ACTIVITY : AppCompatActivity() {
         if (result != null) {
             if (result.contents == null) {
                 Toast.makeText(this, "Отменено", Toast.LENGTH_LONG).show()
-                startActivity(Intent(this, MainActivity2::class.java))
+                startActivity(Intent(this, MainActivity::class.java))
             } else {
                 val qrCodeValue = result.contents
-                var intent = getIntent()
-                val ip_port = intent.getStringExtra("ip_port").toString()
-                val tags = intent.getStringExtra("tags").toString()
                 Toast.makeText(this, "Станок $qrCodeValue", Toast.LENGTH_LONG).show()
-                intent = (Intent(this, SecondActivity::class.java))
+                var intent: Intent = (Intent(this, SecondActivity::class.java))
                 intent.putExtra("qrCodeValue", qrCodeValue)
-                intent.putExtra("tags", tags)
-                intent.putExtra("ip_port",ip_port)
                 startActivity(intent)
 
                 // Дальнейшая обработка значения QR-кода
@@ -51,4 +47,16 @@ class QR_ACTIVITY : AppCompatActivity() {
             super.onActivityResult(requestCode, resultCode, data)
         }
     }
+    @SuppressLint("SuspiciousIndentation")
+    @Deprecated("Deprecated in Java")
+    override fun onBackPressed() {
+        val intent = Intent(
+            this,
+            MainActivity::class.java
+        ) // Замените Page1Activity на ваш класс Activity
+        startActivity(intent)
+        finish()
+
+    }
+
 }

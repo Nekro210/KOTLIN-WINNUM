@@ -68,7 +68,7 @@
         android:layout_marginTop="20sp"
         android:layout_marginHorizontal="100sp"
         android:backgroundTint="@color/colorAccent"
-        android:text="@string/Next"
+        android:text="@string/Save"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 

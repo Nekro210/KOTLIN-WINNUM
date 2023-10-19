@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Weather App</string>
+    <string name="app_name">Winnum App</string>
     <string name="logo">Войдите в Winnum</string>
     <string name="hint_user_field">Пароль</string>
     <string name="main_btn">Войти</string>
@@ -29,4 +29,5 @@
     <string name="enter_tags">Введите теги, составляющие время простоя через пробел</string>
     <string name="Next">Далее</string>
     <string name="login">Логин</string>
+    <string name="Save">Сохранить</string>
 </resources>
