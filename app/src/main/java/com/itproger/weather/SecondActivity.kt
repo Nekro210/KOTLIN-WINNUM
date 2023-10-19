@@ -38,18 +38,18 @@ class SecondActivity : AppCompatActivity() {
     private var result_info2: TextView? = null
     private var text = ""
     private var pieChart: PieChart? = null
-    private val entries: ArrayList<PieEntry> = ArrayList()
-    private val tag_colors: ArrayList<Int> = ArrayList()
+    private val entries: ArrayList<PieEntry> = ArrayList() // данные диаграммы
+    private val tag_colors: ArrayList<Int> = ArrayList() // массив цветов диаграммы
     //private val password = "wnadmin"
    // private val user = "wnadmin"
     //private /val uuid= Array<String>
     private var ip_port = ""
-    private var tags = ""
+    private var tags = "" // теги простоя
     //"http://10.0.2.2:82"
     //"http://192.168.0.101:80"
     private val objectMapper = ObjectMapper()
     private var json:JsonNode= objectMapper.createObjectNode()
-    private var pi = -1
+    private var pi = -1 // product id
     private val handler: Handler = Handler()
     private var login = ""
     private var password = ""
@@ -58,14 +58,12 @@ class SecondActivity : AppCompatActivity() {
         SecondActivity::class.java
     )
 
-    //private val qrCodeValue = 1
 
     @SuppressLint("SetTextI18n")
     fun getCon(url: String){
             try{
                 val url2 = URL("$url&usr=$login&pwd=$password")
                 val con = url2.openConnection() as HttpURLConnection
-                //con.setRequestProperty("cookie","JSESSIONID=P7gU7XsgvzM95dWk3Ztptk2BUJ-lBagIHcHMvbFq.laptop-m9c07f23; _ga=GA1.1.441910024.1683486154; Studio-346eca46=2707507b-8e30-41e9-9eed-0596a626828e")
                 con.requestMethod = "GET"
                 con.connect()
                 val objectMapper = XmlMapper()
@@ -85,12 +83,12 @@ class SecondActivity : AppCompatActivity() {
                 Toast.makeText(this, "Проверьте логин, пароль и ip", Toast.LENGTH_LONG).show()
                 Log.d("ERRORTYPE", e.message.toString())
             }
-    }
+    } // HTTP GET запрос
 
     fun add_text(stroka:String,json:JsonNode){
         if (!json.isNull)
             text += stroka.replace("\"","")
-    }
+    } // добавляем текст
 
     fun get_product_info() {
         try {
@@ -112,7 +110,7 @@ class SecondActivity : AppCompatActivity() {
         catch (e: Exception) {
             Log.d("ERRORTYPE", e.message.toString())
         }
-    }
+    } // информация о станке
 
     fun get_operator_data(operator_code_signal:String,qrCodeValue:String){
         try {
@@ -135,7 +133,7 @@ class SecondActivity : AppCompatActivity() {
         catch (e: Exception) {
             Log.d("ERRORTYPE", e.message.toString())
         }
-    }
+    } // данные по оператору
 
     fun get_program_name() {
         try {
@@ -151,7 +149,7 @@ class SecondActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Log.d("ERRORTYPE", e.message.toString())
         }
-    }
+    } // данные о программе
 
     fun get_DSE_data(DSE_name:String,DSE_id:String,qrCodeValue:String): String {
         var DSE_id_time = ""
@@ -177,7 +175,7 @@ class SecondActivity : AppCompatActivity() {
             Log.d("ERRORTYPE", e.message.toString())
         }
         return DSE_id_time
-    }
+    } // DSE_NAME и DSE_ID
 
     fun get_operation_data(operation_number_signal:String,DSE_time:String,DSE_id_time:String,currentDateTime:String,dateFormat:SimpleDateFormat,qrCodeValue:String){
         try {
@@ -204,13 +202,13 @@ class SecondActivity : AppCompatActivity() {
             if (ready_time.toInt() <= 100)
                 add_text("готовность ${ready_time}%\n\n", json)
             else
-                add_text("готовность ${ready_time}% !!!\n\n", json)
+                add_text("готовность > 100% !!!\n\n", json)
 
 
         }catch (e: Exception) {
             Log.d("ERRORTYPE", e.message.toString())
         }
-    }
+    } // данные по операции и ее готовности
 
     fun get_ready_data(done_operations_signal:String,not_done_operations_signal:String,qrCodeValue:String) {
         try {
@@ -226,33 +224,25 @@ class SecondActivity : AppCompatActivity() {
         }catch (e: Exception) {
             Log.d("ERRORTYPE", e.message.toString())
         }
-    }
+    } // Готово n из m
 
     @SuppressLint("SuspiciousIndentation")
     fun get_shift_data(currentDateTime:String, dateFormat:SimpleDateFormat, qrCodeValue:String, arrayOfTags: Array<String>) {
         try {
             var url =
-                ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNCalendarHelper&men=getCurrentWorkShift&oid=winnum.org.product.WNProduct:$pi&mode=yes")
-            getCon(url)
-            val shift_id = URLDecoder.decode(json[0]["id"].toString(), "UTF-8").replace("\"", "")
-
-            url =
                 ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNCalendarHelper&men=getCurrentWorkShiftStartDate&oid=winnum.org.product.WNProduct:$pi&mode=yes")
             getCon(url)
             val shift_start =
                 URLDecoder.decode(json["datetime"].toString(), "UTF-8").replace("\"", "")
                     .replace(" ", "%20")
 
-
-            //http://localhost:82/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNCNCApplicationTagHelper&men=getLoadingCalculation&appid=winnum.org.app.WNApplicationInstance:1&pid=winnum.org.product.WNProduct:1&from=2023-10-01%2008:00:00&till=2023-10-01%2015:51:00&rounding=2&adjust=true&mode=yes
             var i = 0
-            //val work_time = arrayOf(0.00F)
-            val no_work_time = arrayOf(0.00F)
-            val off_time = arrayOf(0.00F)
+            val no_work_time = arrayOf(0.00F) // время простоя
+            val off_time = arrayOf(0.00F) // время NC_OFF
             val tags_ids: ArrayList<String> = ArrayList()
             var x = 1
-            var NC_ON_time = arrayOf(0.00F)
-            var NC_PROGRAM_RUN_time = arrayOf(0.00F)
+            val NC_ON_time = arrayOf(0.00F)
+            val NC_PROGRAM_RUN_time = arrayOf(0.00F)
             val complexTagsArray = arrayOf("NC_OFF","NC_ON","NC_PROGRAM_RUN")
             while (i < 5) {
                 url = ("""$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNApplicationTagHelper&men=getSimpleTagCalculation&appid=winnum.org.app.WNApplicationInstance:1&pid=winnum.org.product.WNProduct:$pi&tid=winnum.org.tag.WNTag:$x&from=$shift_start&till=$currentDateTime&timeout=60000&mode=yes""")
@@ -352,11 +342,11 @@ class SecondActivity : AppCompatActivity() {
                     URLDecoder.decode("${json["tagColor"]}", "UTF-8").toString()
                         .replace("\"", "")))
                 i++
-            }
+            } // цвета диаграммы
         }catch (e: Exception) {
             Log.d("ERRORTYPE", e.message.toString())
         }
-    }
+    } // получаем начало смены и рассчитываем диаграмму
 
     fun get_work_start_data(operator_signal:String,qrCodeValue:String){
         try{
@@ -374,7 +364,7 @@ class SecondActivity : AppCompatActivity() {
     }catch (e: Exception) {
         Log.d("ERRORTYPE", e.message.toString())
     }
-    }
+    } // время начала работы оператора
 
     fun getpi(qrCodeValue: String){
         var url = "fdfd"
@@ -393,7 +383,7 @@ class SecondActivity : AppCompatActivity() {
             }
         }
         getpi2()
-    }
+    } // получаем порядковый номер станка
 
     @SuppressLint("SimpleDateFormat")
     @RequiresApi(Build.VERSION_CODES.O)
@@ -404,31 +394,28 @@ class SecondActivity : AppCompatActivity() {
             password = pref.getString("password", getString(R.string.hint_user_field)).toString()
             login = pref.getString("login",getString(R.string.login)).toString()
             ip_port = "http://${pref.getString("ip", getString(R.string.ip_port))}"
-            tags = pref.getString("tags",getString(R.string.tags)).toString()
-            //login = intent.getStringExtra("login").toString()
-            //password = intent.getStringExtra("password").toString()
-            //ip_port = "http://${intent.getStringExtra("ip_port").toString()}"
-            //tags = intent.getStringExtra("tags").toString()
+            tags = pref.getString("tags",getString(R.string.tags)).toString() // теги простоя
+
             val qrCodeValue = intent.getStringExtra("qrCodeValue").toString()
-                //"91528AAD-2D7C-43BE-B765-192E89BF3C77"
-                ///intent.getStringExtra("qrCodeValue").toString()
-                //"91528AAD-2D7C-43BE-B765-192E89BF3C77"
+
             val zoneId = ZoneOffset.UTC
             val currentDate = LocalDateTime.now(zoneId)
             val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
-            //val month = currentDate.minusDays(30).toString().replace("T","%20")
-            //val week = currentDate.minusDays(7).toString().replace("T","%20")
+
             val arrayOfTags = tags.split(" ").toTypedArray()
             val currentDateTime =  currentDate.toString().replace("T","%20").substring(0,25)
+
             getpi(qrCodeValue)
             var url =("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNFactory&men=getPersistable&oid=winnum.org.product.WNProduct:$pi&mode=yes")
             getCon(url)
+
             get_product_info()
             val template = (URLDecoder.decode("${json["TemplateInfo__idA12"]}, ","UTF-8")).replace("\"","").replace(", ","")
 
             url = ("$ip_port/Winnum/views/pages/app/agw.jsp?rpc=winnum.views.url.WNProductHelper&men=getSignalsByProductTemplate&oid=winnum.org.modeling.WNProductTemplate:$template&mode=yes")
             getCon(url)
 
+            // получаем номера сигналов
             var operator_code_signal = ""
             var operation_number_signal = ""
             var operator_signal = ""
@@ -436,7 +423,7 @@ class SecondActivity : AppCompatActivity() {
             var not_done_operations_signal = ""
             var DSE_id = ""
             var DSE_name = ""
-            //var DSE_time = ""
+
             var i = 0
             while (i < json.size()) {
                 if (URLDecoder.decode("${json[i]["signalName"]}, ","UTF-8").replace("\"","").replace(", ","") == "Код оператора")
@@ -530,7 +517,7 @@ class SecondActivity : AppCompatActivity() {
         pieChart?.animateXY(1000, 1000)
         pieChart?.invalidate()
 
-                handler.postDelayed(Runnable { // Создаем намерение (Intent) для запуска вашей Activity
+                handler.postDelayed(Runnable { // Создаем намерение (Intent) для запуска Activity
 
                     //finish()
                     startActivity(intent33)

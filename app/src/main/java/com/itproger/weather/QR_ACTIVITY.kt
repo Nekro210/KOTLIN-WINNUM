@@ -37,8 +37,8 @@ class QR_ACTIVITY : AppCompatActivity() {
             } else {
                 val qrCodeValue = result.contents
                 Toast.makeText(this, "Станок $qrCodeValue", Toast.LENGTH_LONG).show()
-                var intent: Intent = (Intent(this, SecondActivity::class.java))
-                intent.putExtra("qrCodeValue", qrCodeValue)
+                val intent: Intent = (Intent(this, SecondActivity::class.java))
+                intent.putExtra("qrCodeValue", qrCodeValue) // передаем считанный QR код на следующую страницу
                 startActivity(intent)
 
                 // Дальнейшая обработка значения QR-кода
@@ -53,7 +53,7 @@ class QR_ACTIVITY : AppCompatActivity() {
         val intent = Intent(
             this,
             MainActivity::class.java
-        ) // Замените Page1Activity на ваш класс Activity
+        ) // кнопка назад на предыдущую страницу
         startActivity(intent)
         finish()
 

@@ -33,7 +33,7 @@ class MainActivity2 : AppCompatActivity() {
 
         main_btn2?.setOnClickListener {
             val edit = pref.edit()
-            edit.putString("ip",user_field2?.text.toString())
+            edit.putString("ip",user_field2?.text.toString()) // сохранение ip и тегов
             edit.putString("tags",user_field3?.text.toString())
             edit.apply()
             user_field2?.setText(pref.getString("ip", getString(R.string.ip_port)))
@@ -48,7 +48,7 @@ class MainActivity2 : AppCompatActivity() {
     override fun onBackPressed() {
         val intent = Intent(
             this,
-            MainActivity::class.java
+            MainActivity::class.java // если нажали кнопку назад возвращаемся назад
         )
         startActivity(intent)
         finish()

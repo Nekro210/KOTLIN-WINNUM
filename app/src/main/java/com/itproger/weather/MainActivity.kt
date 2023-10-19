@@ -27,6 +27,7 @@ class MainActivity : AppCompatActivity() {
         user_field = findViewById(R.id.user_field)
         val pref = getSharedPreferences("test", MODE_PRIVATE)
         val edit = pref.edit()
+
         user_field2?.setText(pref.getString("password",getString(R.string.hint_user_field)))
         user_field?.setText(pref.getString("login",getString(R.string.login)))
 
@@ -35,15 +36,15 @@ class MainActivity : AppCompatActivity() {
 
         main_btn?.setOnClickListener {
 
-            edit.putString("password",user_field2?.text.toString())
+            edit.putString("password",user_field2?.text.toString()) // сохранение пароля и логина
             edit.putString("login",user_field?.text.toString())
             edit.apply()
-            user_field2?.setText(pref.getString("password",getString(R.string.hint_user_field)))
+            user_field2?.setText(pref.getString("password",getString(R.string.hint_user_field))) // новые логин и пароль становятся текстом по умолчанию
             user_field?.setText(pref.getString("login",getString(R.string.login)))
             val intent = (Intent(this, QR_ACTIVITY::class.java))
             startActivity(intent)
         }
-        bottomRightButton?.setOnClickListener {
+        bottomRightButton?.setOnClickListener {// кнопка настроек
             val intent = (Intent(this, MainActivity2::class.java))
             edit.putString("password",user_field2?.text.toString())
             edit.putString("login",user_field?.text.toString())
