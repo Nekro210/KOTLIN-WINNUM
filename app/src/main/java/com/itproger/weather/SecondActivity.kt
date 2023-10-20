@@ -7,6 +7,7 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.widget.TextView
 import android.widget.Toast
@@ -50,7 +51,7 @@ class SecondActivity : AppCompatActivity() {
     private val objectMapper = ObjectMapper()
     private var json:JsonNode= objectMapper.createObjectNode()
     private var pi = -1 // product id
-    private val handler: Handler = Handler()
+    private var pi_check = false
     private var login = ""
     private var password = ""
     val intent33 = Intent(
@@ -80,7 +81,8 @@ class SecondActivity : AppCompatActivity() {
 
         } catch (e: Exception) {
                 json = objectMapper.readValue(" ", JsonNode::class.java)
-                Toast.makeText(this, "Проверьте логин, пароль и ip", Toast.LENGTH_LONG).show()
+                if (pi_check)
+                    Toast.makeText(this, "Проверьте логин, пароль и ip", Toast.LENGTH_LONG).show()
                 Log.d("ERRORTYPE", e.message.toString())
             }
     } // HTTP GET запрос
@@ -383,6 +385,7 @@ class SecondActivity : AppCompatActivity() {
             }
         }
         getpi2()
+        pi_check = true
     } // получаем порядковый номер станка
 
     @SuppressLint("SimpleDateFormat")
@@ -517,17 +520,19 @@ class SecondActivity : AppCompatActivity() {
         pieChart?.animateXY(1000, 1000)
         pieChart?.invalidate()
 
-                handler.postDelayed(Runnable { // Создаем намерение (Intent) для запуска Activity
 
-                    //finish()
-                    startActivity(intent33)
-
-                    // Завершаем текущую Activity (если это необходимо)
-                    //finish()
-                }, 40000) // 60,000 миллисекунд = 1 минута
-                //result_info2?.text = ""
             }
         }
+        //val handler: Handler = Handler()
+        Handler(Looper.getMainLooper()).postDelayed(Runnable { // Создаем намерение (Intent) для запуска Activity
+
+            //finish()
+            startActivity(intent33)
+
+            // Завершаем текущую Activity (если это необходимо)
+            //finish()
+        }, 30000) // 60,000 миллисекунд = 1 минута
+        //result_info2?.text = ""
 
     }
     @SuppressLint("SuspiciousIndentation")
