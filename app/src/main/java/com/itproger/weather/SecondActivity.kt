@@ -54,10 +54,7 @@ class SecondActivity : AppCompatActivity() {
     private var pi_check = false
     private var login = ""
     private var password = ""
-    val intent33 = Intent(
-        this,
-        SecondActivity::class.java
-    )
+
 
 
     @SuppressLint("SetTextI18n")
@@ -524,6 +521,10 @@ class SecondActivity : AppCompatActivity() {
             }
         }
         //val handler: Handler = Handler()
+        val intent33 = Intent(
+            this,
+            SecondActivity::class.java
+        )
         Handler(Looper.getMainLooper()).postDelayed(Runnable { // Создаем намерение (Intent) для запуска Activity
 
             //finish()

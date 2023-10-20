@@ -8,7 +8,20 @@ android {
     packagingOptions {
         resources.excludes.add("META-INF/*")
     }
-
+    signingConfigs {
+        debug {
+            storeFile file('C:\\Users\\nz200\\AndroidStudioProjects\\Weather\\keykeykey.jks')
+            storePassword 'Uter2002'
+            keyAlias 'Winnum'
+            keyPassword 'Uter2002'
+        }
+        release {
+            storeFile file('C:\\Users\\nz200\\AndroidStudioProjects\\Weather\\keykeykey.jks')
+            storePassword 'Uter2002'
+            keyAlias 'Winnum'
+            keyPassword 'Uter2002'
+        }
+    }
     compileSdkVersion 34
 
     defaultConfig {
